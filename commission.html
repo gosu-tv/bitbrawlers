@@ -137,7 +137,7 @@ $(document).ready(function() {
 					
 				$('#popup-message .modal-body').html('Error placing your bet. Match already locked');
 				$('#popup-message').modal('show');
-				$('.defplaceyourbets').html('Place your bet now');				
+				$('.defplaceyourbets').html('지금 배팅하세요');				
 			
 			} else if (response['status'] == 'BETONPLACED') {
 					
@@ -148,13 +148,13 @@ $(document).ready(function() {
 					
 				$('#popup-message .modal-body').html('You have zero balance in your account');
 				$('#popup-message').modal('show');
-				$('.defplaceyourbets').html('Place your bet now');				
+				$('.defplaceyourbets').html('지금 배팅하세요');				
 			
 			} else if (response['status'] == 'GREATERTHANBALANCE') {
 					
 				$('#popup-message .modal-body').html('Your bet is greater than your balance');
 				$('#popup-message').modal('show');
-				$('.defplaceyourbets').html('Place your bet now');				
+				$('.defplaceyourbets').html('지금 배팅하세요');				
 			
 			}	
 				
@@ -455,14 +455,14 @@ $(document).ready(function() {
 						
 						$('.bet-status').addClass('bet-status-open');
 						
-						$('.bet-status').html('Bets are OPEN!');
+						$('.bet-status').html('배팅할 수 있습니다!');
 						
 						if (response['results']['placedBetAtsbettors'] == null) {
 							
 							if ($('#bet_on_team').val() != '')
 								$('.defplaceyourbets').html('You placed your bet on ' + $('#bet_on_team').val() + ' for ' + $('.bet-amount').val());
 							else 
-								$('.defplaceyourbets').html('Place your bet now');	
+								$('.defplaceyourbets').html('지금 배팅하세요');	
 						
 						} else {
 							
@@ -584,23 +584,23 @@ $(document).ready(function() {
 
 			if (response['status'] == 'SERVERBLOCK') {
 				
-				$('#popup-message .modal-body').html('Please disable vpn or tor');
+				$('#popup-message .modal-body').html('VPN이나 TOR을 비활성화 시키세요');
 				$('#popup-message').modal('show');
 				
 			} else if (response['status'] == 'OK') {
 				
 				$('.wallet-value').html(response['results']['faucet_value']);
-				$('#popup-message .modal-body').html('You have given a faucet amount');
+				$('#popup-message .modal-body').html('귀하는 이미 포셋금액을 받았습니다.');
 				$('#popup-message').modal('show');
 
 			} else if (response['status'] == 'TAKEN') {
 				
-				$('#popup-message .modal-body').html('You have already reached faucet limit per day. Please deposit bitcoin amount');
+				$('#popup-message .modal-body').html('일일 포셋 한도를 초과했습니다.  비트코인금액을 입금하세요.');
 				$('#popup-message').modal('show');
 				
 			} else if (response['status'] == 'MUSTBEZERO') {
 				
-				$('#popup-message .modal-body').html('Your BTC balance must be 0 in order to use faucet');
+				$('#popup-message .modal-body').html('포셋을 사용하려면 BTC잔액이 0이 되어야합니다');
 				$('#popup-message').modal('show');		
 			
 			}	
@@ -608,7 +608,7 @@ $(document).ready(function() {
 		
 	});
 
-	//WITHDRAW BITCOIN
+	//비트코인 인출하기
 	$('.withdraw-crypto').click(function() {
 		$('#send-crypto').modal('show');
 	});
@@ -742,7 +742,7 @@ $(document).ready(function() {
 		
 	});
 	
-	//WITHDRAW COMMISSION
+	//커미션 인출하기
 	$('.withdraw-crypto-commission').click(function() {
 		$('#send-crypto-commission').modal('show');
 	});
@@ -814,7 +814,7 @@ function getwallet() {
 				   "max" : response['results']['bitcoin_wallet'],        
 				});
 				
-				if ($('.bet-status').html == 'Bets are OPEN!') {
+				if ($('.bet-status').html == '배팅할 수 있습니다!') {
 					var defaultbet = parseFloat(response['results']['bitcoin_wallet']);
 					defaultbet = defaultbet * 0.20;
 					defaultbet = defaultbet.toFixed(8);
@@ -957,8 +957,8 @@ function validateEmail(email) {
             <div class="modal-body">
                 <center>
                     <h4>비트코인 출금</h4>
-                    <div><input type="text" class="btc-address" placeholder="Address" /></div>
-                    <div><input type="text" class="btc-amount" placeholder="Amount" /></div>
+                    <div><input type="text" class="btc-address" placeholder="주소" /></div>
+                    <div><input type="text" class="btc-amount" placeholder="금액" /></div>
                     <span class="error-msg"></span>
                     <div class="g-recaptcha" id="g-recaptcha3"></div>
                 </center>
@@ -1009,7 +1009,7 @@ function validateEmail(email) {
         <div class="modal-content">
             <div class="modal-header">
             &nbsp;
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">ㅌ<span aria-hidden="true">×</span></button>
             <center><img src="http://localhost/bitcoinbrawlers/brawlers/assets/images/logo.png"></center>
             </div>
             	
@@ -1059,8 +1059,8 @@ function validateEmail(email) {
             <div class="modal-body">
                 <center>
                     <h4>커미션 인출하기</h4>
-                    <div><input type="text" class="btc-address-commission" placeholder="Address" /></div>
-                    <div><input type="text" class="btc-amount-commission" placeholder="Amount" /></div>
+                    <div><input type="text" class="btc-address-commission" placeholder="주소" /></div>
+                    <div><input type="text" class="btc-amount-commission" placeholder="금액" /></div>
                     <span class="error-msg"></span>
                     <div class="g-recaptcha" id="g-recaptcha4"></div>
                 </center>
@@ -1091,10 +1091,10 @@ function validateEmail(email) {
             <div class="modal-body">
                 <center>
                     <h4>세팅</h4>
-                    <div><input type="text" class="usr-setting-name" placeholder="NAME" value="Raven" /></div>
-                    <div><input type="text" class="usr-setting-email" placeholder="EMAIL" value="t" /></div>
-                    <div><input type="password" class="usr-setting-password" placeholder="NEW PASSWORD" /></div>
-                    <div><input type="password" class="usr-setting-rpassword" placeholder="RE-TYPE PASSWORD" /></div>
+                    <div><input type="text" class="usr-setting-name" placeholder="이름" value="Raven" /></div>
+                    <div><input type="text" class="usr-setting-email" placeholder="이메일" value="t" /></div>
+                    <div><input type="password" class="usr-setting-password" placeholder="새 비밀번호" /></div>
+                    <div><input type="password" class="usr-setting-rpassword" placeholder="비밀번호 재입력" /></div>
                     <span class="error-msg"></span>
                     <div class="g-recaptcha" id="g-recaptcha1"></div>
                 </center>
@@ -1165,11 +1165,11 @@ function copytoclipboard(el, target) {
 	<div class="container">
     	<a href="index.php" class="logo"></a>
         <div class="user-navigation">
-    <a href="#" class="deposit-crypto">DEPOSIT</a>
-    <a href="#" class="withdraw-crypto">WITHDRAW</a>
+    <a href="#" class="deposit-crypto">입금</a>
+    <a href="#" class="withdraw-crypto">출금</a>
     <a href="#" class="get-faucet">포셋</a>
-    <a href="what-is-bitcoin.php">HOW TO BUY BITCOIN</a>
-    <a href="http://localhost/bitcoinbrawlers//esports">ESPORTS</a>
+    <a href="what-is-bitcoin.php">비트코인 사는 방법</a>
+    <a href="http://localhost/bitcoinbrawlers//esports">e스포츠</a>
 </div>
 
 <div class="user-bitcoin">
@@ -1181,24 +1181,24 @@ function copytoclipboard(el, target) {
 	<div class="user-icon"></div>
     
     <div class="dropdown account-dropdown">
-        <a class="user-account dropdown-toggle" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">ACCOUNT <span class="downarrow-icon"></span></a>
+        <a class="user-account dropdown-toggle" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">계정 <span class="downarrow-icon"></span></a>
         <div class="dropdown-menu" aria-labelledby="dropdownMenu">
-            <a href="#" class="dropdown-item usr-settings">Settings</a>
-            <a href="#" class="dropdown-item usr-statistics">Statistics</a>
-            <a href="#" class="dropdown-item usr-referral">Referral Program</a>
-            <a href="#" class="dropdown-item view-usr-commissions">My Commissions</a>
-            <a href="logout.php" class="dropdown-item usr-logout">Logout</a>
+            <a href="#" class="dropdown-item usr-settings">세팅</a>
+            <a href="#" class="dropdown-item usr-statistics">통계</a>
+            <a href="#" class="dropdown-item usr-referral">소개 프로그램</a>
+            <a href="#" class="dropdown-item view-usr-commissions">내 커미션</a>
+            <a href="logout.php" class="dropdown-item usr-logout">로그아웃</a>
         </div>
     </div>
     
     <div class="dropdown mobile-dropdown">
-    <a class="mobile-dropdown-menu dropdown-toggle" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">MENU <span class="mobile-icon"></span></a>
+    <a class="mobile-dropdown-menu dropdown-toggle" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">메뉴 <span class="mobile-icon"></span></a>
     <div class="dropdown-menu" aria-labelledby="dropdownMenu">
-        <a href="#" class="deposit-crypto">DEPOSIT</a>
-        <a href="#" class="withdraw-crypto">WITHDRAW</a>
+        <a href="#" class="deposit-crypto">입금</a>
+        <a href="#" class="withdraw-crypto">출금</a>
         <a href="#" class="get-faucet">포셋</a>
-        <a href="what-is-bitcoin.php">HOW TO BUY BITCOIN</a>
-        <a href="http://localhost/bitcoinbrawlers//esports">ESPORTS</a>
+        <a href="what-is-bitcoin.php">비트코인 사는 방법</a>
+        <a href="http://localhost/bitcoinbrawlers//esports">e스포츠</a>
     </div>
     
     
@@ -1213,12 +1213,12 @@ function copytoclipboard(el, target) {
   
   <div class="alert alert-info alert-dismissible fade in">
     <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-    <strong>You Won!</strong> Congratulations on winning your bet!
+    <strong>You Won!</strong> 배팅에서 이긴 것을 축하합니다!
   </div>
 
   <div class="alert alert-danger alert-dismissible fade in">
     <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-    <strong>You Lost!</strong> Better luck next time!
+    <strong>졌습니다!</strong> 다음번에는 행운이 있기를!
   </div>
   
 </div>
@@ -1234,15 +1234,15 @@ function copytoclipboard(el, target) {
                     <table class="player-lists">
                         <tr>
                             <th>
-                                TEAM A
+                                A팀
                             </th>
                             <th>
-                                TEAM B
+                                B팀
                             </th>
                         </tr>
                                                 <tr>
                             <td colspan="2" style="color:#FFF;">
-                                AWAITING PLAYER BETS
+                                플레이어가 배팅하기를 기다리는 중...
                             </td>
                         </tr>
                                         	</table>
@@ -1254,7 +1254,7 @@ function copytoclipboard(el, target) {
             
             	<center>
                     <div class="bet-status bet-status-open">
-                        Bets are OPEN!                    </div>
+                        배팅할 수 있습니다!                    </div>
                 </center>
                 
                 <div class="bet-teams">
@@ -1266,7 +1266,7 @@ function copytoclipboard(el, target) {
                 
                 <div class="bet-details">
                 
-                	<button type="button" class="btn btn-danger sbettors1-btn " >BET ON THIS TEAM</button>
+                	<button type="button" class="btn btn-danger sbettors1-btn " >이팀에 배팅하기</button>
                 	
                     <div class="bet-place-amount">
 						                        <input type="text" id="bet-amount" class="bet-amount" value="0.78270869" placeholder="Bet Amount"  />
@@ -1274,7 +1274,7 @@ function copytoclipboard(el, target) {
                         <input type="hidden" id="bet_on_sbettors" value="" />
                     </div>
                     
-                    <button type="button" class="btn btn-primary sbettors2-btn " >BET ON THIS TEAM</button>
+                    <button type="button" class="btn btn-primary sbettors2-btn " >이팀에 배팅하기</button>
                             
                     <div class="clear"></div>
                     
@@ -1287,7 +1287,7 @@ function copytoclipboard(el, target) {
                 </div>
 
                 <div class="defplaceyourbets">
-				Place your bet now                </div>
+				지금 배팅하세요                </div>
 				
                 <iframe id="iframeplayer" src="https://player.twitch.tv/?channel=saltybet" frameborder="0" scrolling="no" height="500" width="100%" allowfullscreen="true"></iframe>				
                
@@ -1308,10 +1308,10 @@ function copytoclipboard(el, target) {
 <section class="footer">
     <div class="container">
         <div class="footer-links">
-            <a href="index.php">Home</a>
-            <a href="how-to-buy-bitcoin.php">How to buy Bitcoin</a>
-            <a href="what-is-bitcoin.php">What is Bitcoin</a>
-            <a href="terms-of-service.php">Terms of service</a>
+            <a href="index.php">홈</a>
+            <a href="how-to-buy-bitcoin.php">비트코인 사는 방법</a>
+            <a href="what-is-bitcoin.php">비트코인이란 무엇인가</a>
+            <a href="terms-of-service.php">서비스 조건</a>
         </div>
     </div>
 </section>

@@ -137,7 +137,7 @@ $(document).ready(function() {
 					
 				$('#popup-message .modal-body').html('Error placing your bet. Match already locked');
 				$('#popup-message').modal('show');
-				$('.defplaceyourbets').html('Place your bet now');				
+				$('.defplaceyourbets').html('지금 배팅하세요');				
 			
 			} else if (response['status'] == 'BETONPLACED') {
 					
@@ -148,13 +148,13 @@ $(document).ready(function() {
 					
 				$('#popup-message .modal-body').html('You have zero balance in your account');
 				$('#popup-message').modal('show');
-				$('.defplaceyourbets').html('Place your bet now');				
+				$('.defplaceyourbets').html('지금 배팅하세요');				
 			
 			} else if (response['status'] == 'GREATERTHANBALANCE') {
 					
 				$('#popup-message .modal-body').html('Your bet is greater than your balance');
 				$('#popup-message').modal('show');
-				$('.defplaceyourbets').html('Place your bet now');				
+				$('.defplaceyourbets').html('지금 배팅하세요');				
 			
 			}	
 				
@@ -455,14 +455,14 @@ $(document).ready(function() {
 						
 						$('.bet-status').addClass('bet-status-open');
 						
-						$('.bet-status').html('Bets are OPEN!');
+						$('.bet-status').html('배팅할 수 있습니다!');
 						
 						if (response['results']['placedBetAtsbettors'] == null) {
 							
 							if ($('#bet_on_team').val() != '')
 								$('.defplaceyourbets').html('You placed your bet on ' + $('#bet_on_team').val() + ' for ' + $('.bet-amount').val());
 							else 
-								$('.defplaceyourbets').html('Place your bet now');	
+								$('.defplaceyourbets').html('지금 배팅하세요');	
 						
 						} else {
 							
@@ -584,23 +584,23 @@ $(document).ready(function() {
 
 			if (response['status'] == 'SERVERBLOCK') {
 				
-				$('#popup-message .modal-body').html('Please disable vpn or tor');
+				$('#popup-message .modal-body').html('VPN이나 TOR을 비활성화 시키세요');
 				$('#popup-message').modal('show');
 				
 			} else if (response['status'] == 'OK') {
 				
 				$('.wallet-value').html(response['results']['faucet_value']);
-				$('#popup-message .modal-body').html('You have given a faucet amount');
+				$('#popup-message .modal-body').html('귀하는 이미 포셋금액을 받았습니다.');
 				$('#popup-message').modal('show');
 
 			} else if (response['status'] == 'TAKEN') {
 				
-				$('#popup-message .modal-body').html('You have already reached faucet limit per day. Please deposit bitcoin amount');
+				$('#popup-message .modal-body').html('일일 포셋 한도를 초과했습니다.  비트코인금액을 입금하세요.');
 				$('#popup-message').modal('show');
 				
 			} else if (response['status'] == 'MUSTBEZERO') {
 				
-				$('#popup-message .modal-body').html('Your BTC balance must be 0 in order to use faucet');
+				$('#popup-message .modal-body').html('포셋을 사용하려면 BTC잔액이 0이 되어야합니다');
 				$('#popup-message').modal('show');		
 			
 			}	
@@ -608,7 +608,7 @@ $(document).ready(function() {
 		
 	});
 
-	//WITHDRAW BITCOIN
+	//비트코인 인출하기
 	$('.withdraw-crypto').click(function() {
 		$('#send-crypto').modal('show');
 	});
@@ -742,7 +742,7 @@ $(document).ready(function() {
 		
 	});
 	
-	//WITHDRAW COMMISSION
+	//커미션 인출하기
 	$('.withdraw-crypto-commission').click(function() {
 		$('#send-crypto-commission').modal('show');
 	});
@@ -814,7 +814,7 @@ function getwallet() {
 				   "max" : response['results']['bitcoin_wallet'],        
 				});
 				
-				if ($('.bet-status').html == 'Bets are OPEN!') {
+				if ($('.bet-status').html == '배팅할 수 있습니다!') {
 					var defaultbet = parseFloat(response['results']['bitcoin_wallet']);
 					defaultbet = defaultbet * 0.20;
 					defaultbet = defaultbet.toFixed(8);
@@ -879,11 +879,11 @@ function validateEmail(email) {
             <div class="modal-body">
             	
 				<center>
-                    <h4>YOUR BET <span class="bet-amount-placed"></span> BTC ON <span class="bet-team-placed"></span></h4>
+                    <h4>귀하는 <span class="bet-amount-placed"></span> BTC를 <span class="bet-team-placed"></span>팀에 배팅하셨습니다.</h4>
                 </center>
                 
                 <div class="modal-buttons">
-                    <button type="button" class="btn btn-primary submit-placebet">CONFIRM</button>
+                    <button type="button" class="btn btn-primary submit-placebet">확인</button>
                 </div>    
 
             </div>
@@ -901,7 +901,7 @@ function validateEmail(email) {
             </div>
             <div class="modal-body">
                 <center>
-                    <h4><div>BET BITCOIN ON YOUR BRAWLER!</div> CREATE USERNAME TO START!</h4>
+                    <h4><div>귀하의 브라울러에 비트코인을 배팅하세요!</div> 시작하기 위해 유저네임을 만드세요!</h4>
                     <div><input type="text" class="choose-username" placeholder="USERNAME" /></div>
                     <div><input type="password" class="choose-password" placeholder="PASSWORD" /></div>
                     <span class="error-msg"></span>
@@ -909,8 +909,8 @@ function validateEmail(email) {
                 </center>
                 
                 <div class="modal-buttons">
-                    <button type="button" class="btn btn-primary submit-new-user">CREATE ACCOUNT</button>
-                    <button type="button" class="btn btn-danger user-signin" data-dismiss="modal" aria-label="Close">SIGN-IN</button>
+                    <button type="button" class="btn btn-primary submit-new-user">계정 만들기</button>
+                    <button type="button" class="btn btn-danger user-signin" data-dismiss="modal" aria-label="Close">사인-인</button>
                 </div>      
 
             </div>
@@ -928,7 +928,7 @@ function validateEmail(email) {
             </div>
             <div class="modal-body">
                 <center>
-                    <h4>LOGIN</h4>
+                    <h4>로그인</h4>
                     <div><input type="text" class="login-username" placeholder="USERNAME" /></div>
                     <div><input type="password" class="login-password" placeholder="PASSWORD" /></div>
                     <span class="error-msg"></span>
@@ -936,8 +936,8 @@ function validateEmail(email) {
                 </center>
                 
                 <div class="modal-buttons">
-                    <button type="button" class="btn btn-primary user-signin-submit">LOGIN</button>
-                    <button type="button" class="btn btn-danger user-create-account">CREATE ACCOUNT</button>
+                    <button type="button" class="btn btn-primary user-signin-submit">로그인</button>
+                    <button type="button" class="btn btn-danger user-create-account">계정 만들기</button>
                 </div>      
 
             </div>
@@ -956,18 +956,18 @@ function validateEmail(email) {
             </div>
             <div class="modal-body">
                 <center>
-                    <h4>WITHDRAW BITCOIN</h4>
-                    <div><input type="text" class="btc-address" placeholder="Address" /></div>
-                    <div><input type="text" class="btc-amount" placeholder="Amount" /></div>
+                    <h4>비트코인 인출하기</h4>
+                    <div><input type="text" class="btc-address" placeholder="주소" /></div>
+                    <div><input type="text" class="btc-amount" placeholder="금액" /></div>
                     <span class="error-msg"></span>
                     <div class="g-recaptcha" id="g-recaptcha3"></div>
                 </center>
                 
                                 
-                <div class="have-account"><span style="color:#08c;">Minimum withdrawal is</span> <strong style="color:#cf453f;">1.00000000</strong></div>
+                <div class="have-account"><span style="color:#08c;">최소 인출금액</span> <strong style="color:#cf453f;">1.00000000</strong></div>
                 
                 <div class="modal-buttons">
-                	<button type="button" class="btn btn-primary submit-send-btc">SEND</button>
+                	<button type="button" class="btn btn-primary submit-send-btc">보내기</button>
                 </div>
             
             </div>
@@ -988,13 +988,13 @@ function validateEmail(email) {
             </div>
             <div class="modal-body">
                 <center>
-                    <h4>REFERRAL CODE</h4>
-                    <div>Share this code to your friends and earn a share of their winnnings!</div>
+                    <h4>리퍼럴 코드</h4>
+                    <div>이 코드를 친구와 나누고 그들의 우승금액의 일부를 획득하십시오!</div>
                     <div><u>referrals.php?code=b4d9061695328d38bc6941cf06b4c5r4</u></div>
                 </center>
                 
                 <div class="modal-buttons">
-                    <button type="button" class="btn btn-primary" style="background:#fc6324; border:#fc6324; width:200px; margin:0 auto; padding:10px 20px;" onclick="copytoclipboard('referrals.php?code=b4d9061695328d38bc6941cf06b4c5r4', 'clipboard-referral')">Copy Code to Clipboard</button>
+                    <button type="button" class="btn btn-primary" style="background:#fc6324; border:#fc6324; width:200px; margin:0 auto; padding:10px 20px;" onclick="copytoclipboard('referrals.php?code=b4d9061695328d38bc6941cf06b4c5r4', 'clipboard-referral')">클립코드에 코드를 복사하세요</button>
                     <input type="text" value="" id="clipboard-referral" style="position:fixed; left:-9999999px" />
                 </div>      
 
@@ -1024,7 +1024,7 @@ function validateEmail(email) {
 				<div class="html-content" style="overflow:auto; height:400px;"></div>
                 
                 <div class="modal-buttons">
-                	<button type="button" class="btn btn-primary view-send-btc-comission">WITHDRAW COMISSION</button>
+                	<button type="button" class="btn btn-primary view-send-btc-comission">커미션 인출하기</button>
                 </div>  
 
             </div>
@@ -1043,18 +1043,18 @@ function validateEmail(email) {
             </div>
             <div class="modal-body">
                 <center>
-                    <h4>WITHDRAW COMMISSION</h4>
-                    <div><input type="text" class="btc-address-commission" placeholder="Address" /></div>
-                    <div><input type="text" class="btc-amount-commission" placeholder="Amount" /></div>
+                    <h4>커미션 인출하기</h4>
+                    <div><input type="text" class="btc-address-commission" placeholder="주소" /></div>
+                    <div><input type="text" class="btc-amount-commission" placeholder="금액" /></div>
                     <span class="error-msg"></span>
                     <div class="g-recaptcha" id="g-recaptcha4"></div>
                 </center>
                 
                                 
-                <div class="have-account"><span style="color:#08c;">Minimum withdrawal is</span> <strong style="color:#cf453f;">1.00000000</strong></div>
+                <div class="have-account"><span style="color:#08c;">최소 인출금액</span> <strong style="color:#cf453f;">1.00000000</strong></div>
                 
                 <div class="modal-buttons">
-                	<button type="button" class="btn btn-primary submit-send-btc-commission">SEND</button>
+                	<button type="button" class="btn btn-primary submit-send-btc-commission">보내기</button>
                 </div>
             
             </div>
@@ -1075,17 +1075,17 @@ function validateEmail(email) {
             </div>
             <div class="modal-body">
                 <center>
-                    <h4>SETTINGS</h4>
-                    <div><input type="text" class="usr-setting-name" placeholder="NAME" value="Raven" /></div>
-                    <div><input type="text" class="usr-setting-email" placeholder="EMAIL" value="t" /></div>
-                    <div><input type="password" class="usr-setting-password" placeholder="NEW PASSWORD" /></div>
-                    <div><input type="password" class="usr-setting-rpassword" placeholder="RE-TYPE PASSWORD" /></div>
+                    <h4>세팅</h4>
+                    <div><input type="text" class="usr-setting-name" placeholder="이름" value="Raven" /></div>
+                    <div><input type="text" class="usr-setting-email" placeholder="이메일" value="t" /></div>
+                    <div><input type="password" class="usr-setting-password" placeholder="새 비밀번호" /></div>
+                    <div><input type="password" class="usr-setting-rpassword" placeholder="비밀번호 재입력" /></div>
                     <span class="error-msg"></span>
                     <div class="g-recaptcha" id="g-recaptcha1"></div>
                 </center>
                 
                 <div class="modal-buttons">
-                    <button type="button" class="btn btn-primary submit-usr-settings">UPDATE</button>
+                    <button type="button" class="btn btn-primary submit-usr-settings">업데이트</button>
                 </div>      
 
             </div>
@@ -1177,7 +1177,7 @@ function copytoclipboard(el, target) {
     </div>
     
     <div class="dropdown mobile-dropdown">
-    <a class="mobile-dropdown-menu dropdown-toggle" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">MENU <span class="mobile-icon"></span></a>
+    <a class="mobile-dropdown-menu dropdown-toggle" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">메뉴 <span class="mobile-icon"></span></a>
     <div class="dropdown-menu" aria-labelledby="dropdownMenu">
         <a href="#" class="deposit-crypto">입금</a>
         <a href="#" class="withdraw-crypto">출금</a>
@@ -1203,7 +1203,7 @@ function copytoclipboard(el, target) {
 
   <div class="alert alert-danger alert-dismissible fade in">
     <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-    <strong>졌습니다!</strong> 다음에는 행운이 있기를!
+    <strong>졌습니다!</strong> 다음번에는 행운이 있기를!
   </div>
   
 </div>
