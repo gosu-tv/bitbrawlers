@@ -84,9 +84,9 @@ $(document).ready(function() {
 		$('.popup-confirm-placebet .bet-team-placed').html('');
 		
 		if ($(this).hasClass('sbettors1-btn')) {
-			$('.popup-confirm-placebet .bet-team-placed').html('RED');
+			$('.popup-confirm-placebet .bet-team-placed').html('홍팀');
 		} else if ($(this).hasClass('sbettors2-btn')) {
-			$('.popup-confirm-placebet .bet-team-placed').html('BLUE');
+			$('.popup-confirm-placebet .bet-team-placed').html('청팀');
 		}
 		
 		$('.popup-confirm-placebet .bet-amount-placed').html($('.bet-amount').val());
@@ -101,7 +101,7 @@ $(document).ready(function() {
 		
 		if ($('.bet-amount').val() == '') {
 			
-			$('#popup-message .modal-body').html('Please place bet amount');
+			$('#popup-message .modal-body').html('배팅금액을 걸으세요');
 			$('#popup-message').modal('show');
 			return false;
 		
@@ -127,32 +127,32 @@ $(document).ready(function() {
 					$('#bet_on_sbettors').val('sbettors2');
 				}
 					
-				$('#popup-message .modal-body').html('You have successfully placed your bet');
+				$('#popup-message .modal-body').html('성공적으로 배팅을 했습니다');
 				$('#popup-message').modal('show');
-				$('.defplaceyourbets').html('You placed your bet on ' + response['results']['placedBetAtsbettors'] + ' for ' + response['results']['placedBetAmount']);
+				$('.defplaceyourbets').html('배팅대상 ' + response['results']['placedBetAtsbettors'] + 배팅금액 + response['results']['placedBetAmount']);
 				
 				getwallet();
 				
 			} else if (response['status'] == 'FAILED') {
 					
-				$('#popup-message .modal-body').html('Error placing your bet. Match already locked');
+				$('#popup-message .modal-body').html('배팅오류. 매치는 이미 잠겼습니다');
 				$('#popup-message').modal('show');
 				$('.defplaceyourbets').html('지금 배팅하세요');				
 			
 			} else if (response['status'] == 'BETONPLACED') {
 					
-				$('#popup-message .modal-body').html('You already placed your bet. Please wait for the next match to place another bet');
+				$('#popup-message .modal-body').html('귀하는 이미 배팅을 했습니다. 다른 배팅을 하려면 다음 매치까지 기다려 주세요.');
 				$('#popup-message').modal('show');
 						
 			} else if (response['status'] == 'ZEROBALANCE') {
 					
-				$('#popup-message .modal-body').html('You have zero balance in your account');
+				$('#popup-message .modal-body').html('귀하의 계정에는 잔고가 없습니다');
 				$('#popup-message').modal('show');
 				$('.defplaceyourbets').html('지금 배팅하세요');				
 			
 			} else if (response['status'] == 'GREATERTHANBALANCE') {
 					
-				$('#popup-message .modal-body').html('Your bet is greater than your balance');
+				$('#popup-message .modal-body').html('배팅금액이 잔고보다 큽니다');
 				$('#popup-message').modal('show');
 				$('.defplaceyourbets').html('지금 배팅하세요');				
 			
@@ -169,32 +169,32 @@ $(document).ready(function() {
 		$('#popup-choose-username .error-msg').html('');
 		
 		if ($('.choose-username').val() == '' || $('.choose-password').val() == '') {
-			$('#popup-choose-username .error-msg').html('Username and password is required');
+			$('#popup-choose-username .error-msg').html('사용자이름과 비밀번호가 필요합니다');
 			$('.error-msg').css('display', 'block');	
 			return false;
 		} 
 		
 		if ($('.choose-username').val().length <= 5) {
-			$('#popup-choose-username .error-msg').html('Your username must be at least six characters');
+			$('#popup-choose-username .error-msg').html('사용자이름은 최소 6자 이어야 합니다');
 			$('.error-msg').css('display', 'block');	
 			return false;
 		}
 		
 		var username = $('.choose-username').val();
 		if (username.match(/\s/g) || /^[a-zA-Z0-9- ]*$/.test(username) == false) {
-			$('#popup-choose-username .error-msg').html('Username must not contain special characters');
+			$('#popup-choose-username .error-msg').html('사용자이름에 특수문자를 사용할 수 없습니다');
 			$('.error-msg').css('display', 'block');	
 			return false;
 		}
 		
 		if ($('.choose-password').val().length <= 5) {
-			$('#popup-choose-username .error-msg').html('Your password must be at least six characters');
+			$('#popup-choose-username .error-msg').html('비밀번호는 최소 6자 이상 이어야 합니다');
 			$('.error-msg').css('display', 'block');	
 			return false;
 		}
 		
 		if (grecaptcha.getResponse(widgetCpt_newusr) == '') {
-			$('#popup-choose-username .error-msg').html('Invalid reCaptcha');
+			$('#popup-choose-username .error-msg').html('reCaptcha가 잘못되었습니다');
 			$('.error-msg').css('display', 'block');	
 			return false;
 		}
@@ -214,12 +214,12 @@ $(document).ready(function() {
 			
 			} else if (response['status'] == 'DUPLICATE') {
 				
-				$('#popup-choose-username .error-msg').html('Username is already taken. Please choose different one');
+				$('#popup-choose-username .error-msg').html('사용자이름이 이미 사용 중입니다. 다른 이름을 선택하세요');
 				$('.error-msg').css('display', 'block');		
 				
 			} else {
 				
-				$('#popup-choose-username .error-msg').html('Cannot process your request. Please try again');
+				$('#popup-choose-username .error-msg').html('요청을 처리할 수 없습니다. 다시 시도해 주세요');
 				$('.error-msg').css('display', 'block');		
 			
 			}	
@@ -239,13 +239,13 @@ $(document).ready(function() {
 		$('#popup-usr-settings .error-msg').html('');
 		
 		if ($('.usr-setting-name').val() == '') {
-			$('#popup-usr-settings .error-msg').html('Name is required');
+			$('#popup-usr-settings .error-msg').html('이름이 필요합니다');
 			$('.error-msg').css('display', 'block');	
 			return false;
 		} 
 		
 		if ($('.usr-setting-email').val() == '') {
-			$('#popup-usr-settings .error-msg').html('Email is required');
+			$('#popup-usr-settings .error-msg').html('이메일이 필요합니다');
 			$('.error-msg').css('display', 'block');	
 			return false;
 		}
@@ -253,7 +253,7 @@ $(document).ready(function() {
 		if ($('.usr-setting-email').val() != '') {
 			var email = $('.usr-setting-email').val();
 			if (!validateEmail(email)) {
-				$('#popup-usr-settings .error-msg').html('Email is invalid');
+				$('#popup-usr-settings .error-msg').html('이메일이 잘못되었습니다');
 				$('.error-msg').css('display', 'block');	
 				return false;
 			}
@@ -262,7 +262,7 @@ $(document).ready(function() {
 		if ($('.usr-setting-password').val() != '') {
 			
 			if ($('.usr-setting-password').val().length <= 5) {
-				$('#popup-usr-settings .error-msg').html('Your password must be at least six characters');
+				$('#popup-usr-settings .error-msg').html('비밀번호는 최소 6자 이상 이어야 합니다');
 				$('.error-msg').css('display', 'block');	
 				return false;
 			}
@@ -286,7 +286,7 @@ $(document).ready(function() {
 			
 			if (response['status'] == 'OK') {
 
-				$('#popup-usr-settings .error-msg').html('Record has been updated');
+				$('#popup-usr-settings .error-msg').html('레코드가 갱신되었습니다');
 				$('.error-msg').css('display', 'block');
 			
 			}
@@ -306,13 +306,13 @@ $(document).ready(function() {
 		$('#popup-signin .error-msg').html('');
 		
 		if ($('.login-username').val() == '' || $('.login-password').val() == '') {
-			$('#popup-signin .error-msg').html('Username and password is required');
+			$('#popup-signin .error-msg').html('사용자이름과 비밀번호가 필요합니다');
 			$('.error-msg').css('display', 'block');	
 			return false;
 		} 
 		
 		if (grecaptcha.getResponse(widgetCpt_login) == '') {
-			$('#popup-signin .error-msg').html('Invalid reCaptcha');
+			$('#popup-signin .error-msg').html('reCaptcha가 잘못되었습니다');
 			$('.error-msg').css('display', 'block');	
 			return false;
 		}
@@ -332,12 +332,12 @@ $(document).ready(function() {
 			
 			} else if (response['status'] == 'BOT') {
 				
-				$('#popup-signin .error-msg').html('The admin has tag you as bot and banned you from the system');
+				$('#popup-signin .error-msg').html('관리자는 귀하를 봇으로 간주하여 시스템 접근을 못하게 막았습니다');
 				$('.error-msg').css('display', 'block');		
 				
 			} else {
 				
-				$('#popup-signin .error-msg').html('Invalid login. Please try again');
+				$('#popup-signin .error-msg').html('잘못된 로그인. 다시 시도해 주세요');
 				$('.error-msg').css('display', 'block');
 			
 			}	
@@ -460,13 +460,13 @@ $(document).ready(function() {
 						if (response['results']['placedBetAtsbettors'] == null) {
 							
 							if ($('#bet_on_team').val() != '')
-								$('.defplaceyourbets').html('You placed your bet on ' + $('#bet_on_team').val() + ' for ' + $('.bet-amount').val());
+								$('.defplaceyourbets').html('배팅대상 ' + $('#bet_on_team').val() + 배팅금액 + $('.bet-amount').val());
 							else 
 								$('.defplaceyourbets').html('지금 배팅하세요');	
 						
 						} else {
 							
-							$('.defplaceyourbets').html('You placed your bet on ' + response['results']['placedBetAtsbettors'] + ' for ' + response['results']['placedBetAmount']);
+							$('.defplaceyourbets').html('배팅대상 ' + response['results']['placedBetAtsbettors'] + 배팅금액 + response['results']['placedBetAmount']);
 						
 						}
 
@@ -481,7 +481,7 @@ $(document).ready(function() {
 						
 						$('.bet-status').addClass('bet-status-ongoing');
 						
-						$('.bet-status').html('Bets are locked until the next match');
+						$('.bet-status').html('다음 매치까지 배팅은 잠깁니다');
 						$('.bet-status').addClass('bet-status-open');
 						
 						$('.bet-amount').prop('disabled', true);
@@ -492,7 +492,7 @@ $(document).ready(function() {
 						$('.sbettors2-btn').addClass('line-through');
 						
 						if (response['results']['html'] == null) {
-							$('.defplaceyourbets').html('Match is on going. You can place your bet on next match');	
+							$('.defplaceyourbets').html('매치가 진행 중입니다. 다음 매치에서 배팅할 수 있습니다');	
 						} else {
 							$('.defplaceyourbets').html(response['results']['html']);
 						}
@@ -520,7 +520,7 @@ $(document).ready(function() {
 								else 
 									;//$('.defplaceyourbets').html('You lost');
 							} else {
-								$('.defplaceyourbets').html('Place your bet next on match');
+								$('.defplaceyourbets').html('다음 매치에서 배팅해 주세요');
 							}
 							
 						} else {
@@ -620,7 +620,7 @@ $(document).ready(function() {
 		var valid = WAValidator.validate('1KFzzGtDdnq5hrwxXGjwVnKzRbvf8WVxck', 'bitcoin');
 		
 		if ($('.btc-address').val() == '') {
-			$('#send-crypto .error-msg').html('Wallet address is required');
+			$('#send-crypto .error-msg').html('지갑주소가 필요합니다');
 			$('.error-msg').css('display', 'block');	
 			return false;
 		}
@@ -628,20 +628,20 @@ $(document).ready(function() {
 		if ($('.btc-address').val() != '') {
 			var valid = WAValidator.validate($('.btc-address').val(), 'bitcoin');
 			if (!valid) {
-				$('#send-crypto .error-msg').html('Wallet address is invalid');
+				$('#send-crypto .error-msg').html('지갑주소가 잘못되었습니다');
 				$('.error-msg').css('display', 'block');
 				return false;
 			}
 		}
 		
 		if ($('.btc-amount').val() == '') {
-			$('#send-crypto .error-msg').html('Amount is required');
+			$('#send-crypto .error-msg').html('금액이 필요합니다');
 			$('.error-msg').css('display', 'block');	
 			return false;
 		}
 		
 		if (grecaptcha.getResponse(widgetCpt_withdrawbtc) == '') {
-			$('#send-crypto .error-msg').html('Invalid reCaptcha');
+			$('#send-crypto .error-msg').html('reCaptcha가 잘못되었습니다');
 			$('.error-msg').css('display', 'block');	
 			return false;
 		}
@@ -694,7 +694,7 @@ $(document).ready(function() {
 			
 			} else {
 				
-				$('#popup-usr-statistics .modal-body').html('<center>No record(s) found</center>');
+				$('#popup-usr-statistics .modal-body').html('<center>레코드를 찾을 수 없습니다</center>');
 				
 			}
 			
@@ -727,7 +727,7 @@ $(document).ready(function() {
 			
 			} else {
 				
-				$('#popup-usr-commissions .modal-body').html('<center>No record(s) found</center>');
+				$('#popup-usr-commissions .modal-body').html('<center>레코드를 찾을 수 없습니다</center>');
 				
 			}
 			
@@ -752,7 +752,7 @@ $(document).ready(function() {
 		$('#send-crypto-commission .error-msg').html('');
 		
 		if (grecaptcha.getResponse(widgetCpt_withdrawcommission) == '') {
-			$('#send-crypto-commission .error-msg').html('Invalid reCaptcha');
+			$('#send-crypto-commission .error-msg').html('reCaptcha가 잘못되었습니다');
 			$('.error-msg').css('display', 'block');	
 			return false;
 		}
