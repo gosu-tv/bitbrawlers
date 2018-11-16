@@ -1,0 +1,1321 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>BitBrawlers | Brawlers</title>
+<link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="assets/bootstrap/css/bootstrap-grid.min.css">
+<link rel="stylesheet" href="assets/bootstrap/css/bootstrap-responsive.min.css">
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,600,700" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script type="text/javascript" src="assets/js/jquery-3.2.1.js"></script>
+<script type="text/javascript" src="assets/bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="assets/js/wallet-validator/wallet-address-validator/dist/wallet-address-validator.min.js"></script><script type="text/javascript">
+var cf_getplayerlists = false;
+var bet_matchID;
+var sbettors;
+
+$(document).ready(function() {
+	
+	//FIXED HEADER
+	$(document).scroll(function() {
+		if ($(document).scrollTop() >= 100) {
+			$('.topheader').css('position', 'fixed');
+			$('.topheader').css('top', '0');
+		} else {
+			$('.topheader').css('position', 'relative');
+		}
+	});
+	if ($(document).scrollTop() >= 100) {
+		$('.topheader').css('position', 'fixed');
+		$('.topheader').css('top', '0');
+	} else {
+		$('.topheader').css('position', 'relative');
+	}
+	
+	//BET SLIDER
+	if ($('#range').length) {
+		var slider = document.getElementById("range");
+		var output = document.getElementById("bet-amount");
+		output.innerHTML = slider.value;
+		slider.oninput = function() {
+			output.value = parseFloat(this.value).toFixed(8);
+		}
+	}
+	
+	//NOTIFICATION ALERTS
+	$('.alert-dismissible a').click(function() {
+		$('.notification-alerts').hide();
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "process/ajax.php?function=hidealerts&matchID="+bet_matchID,
+		}).done(function(response) {
+			;
+		});
+	});
+	
+	//FORMAT BITCOIN
+	$('.bet-amount').blur(function() {
+		if ($(this).val() == '')
+			return true;
+		else
+			$(this).val(parseFloat($(this).val()).toFixed(8));
+	});
+	$('.bet-amount').keypress(function(eve) {
+		if (eve.which == 46 && $(this).caret().start == 0)
+			;
+		else if ((eve.which != 46 || $(this).val().indexOf('.') != -1) && (eve.which < 48 || eve.which > 57)) {
+			eve.preventDefault();
+		}
+	});
+	
+	//PLACE BETS
+	$('.sbettors1-btn, .sbettors2-btn').click(function() {
+		
+		if ($(this).hasClass('sbettors1-btn')) {
+			sbettors = 1;
+		} else if ($(this).hasClass('sbettors2-btn')) {
+			sbettors = 2;
+		}
+		
+		$('.popup-confirm-placebet .bet-amount-placed').html('');
+		$('.popup-confirm-placebet .bet-team-placed').html('');
+		
+		if ($(this).hasClass('sbettors1-btn')) {
+			$('.popup-confirm-placebet .bet-team-placed').html('RED');
+		} else if ($(this).hasClass('sbettors2-btn')) {
+			$('.popup-confirm-placebet .bet-team-placed').html('BLUE');
+		}
+		
+		$('.popup-confirm-placebet .bet-amount-placed').html($('.bet-amount').val());
+		
+		$('.popup-confirm-placebet').modal('show');
+
+	});
+	
+	$('.submit-placebet').click(function() {
+		
+		$('.popupwindow').modal('hide');
+		
+		if ($('.bet-amount').val() == '') {
+			
+			$('#popup-message .modal-body').html('Please place bet amount');
+			$('#popup-message').modal('show');
+			return false;
+		
+		}
+
+		$('.ajax-bg, .ajax-loader').css('display', 'block');
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "process/ajax.php?function=placebet&sbettors=sbettors"+sbettors+"&betamount="+$('.bet-amount').val()+"",
+		}).done(function(response) {
+			
+			$('.ajax-bg, .ajax-loader').css('display', 'none');
+			
+			if (response['status'] == 'OK') {
+				
+				if (sbettors == 1) {
+					$('#bet_on_team').val($('.bet-team1').html());
+					$('#bet_on_sbettors').val('sbettors1');
+				
+				} else if (sbettors == 2) {
+					$('#bet_on_team').val($('.bet-team2').html());
+					$('#bet_on_sbettors').val('sbettors2');
+				}
+					
+				$('#popup-message .modal-body').html('You have successfully placed your bet');
+				$('#popup-message').modal('show');
+				$('.defplaceyourbets').html('You placed your bet on ' + response['results']['placedBetAtsbettors'] + ' for ' + response['results']['placedBetAmount']);
+				
+				getwallet();
+				
+			} else if (response['status'] == 'FAILED') {
+					
+				$('#popup-message .modal-body').html('Error placing your bet. Match already locked');
+				$('#popup-message').modal('show');
+				$('.defplaceyourbets').html('Place your bet now');				
+			
+			} else if (response['status'] == 'BETONPLACED') {
+					
+				$('#popup-message .modal-body').html('You already placed your bet. Please wait for the next match to place another bet');
+				$('#popup-message').modal('show');
+						
+			} else if (response['status'] == 'ZEROBALANCE') {
+					
+				$('#popup-message .modal-body').html('You have zero balance in your account');
+				$('#popup-message').modal('show');
+				$('.defplaceyourbets').html('Place your bet now');				
+			
+			} else if (response['status'] == 'GREATERTHANBALANCE') {
+					
+				$('#popup-message .modal-body').html('Your bet is greater than your balance');
+				$('#popup-message').modal('show');
+				$('.defplaceyourbets').html('Place your bet now');				
+			
+			}	
+				
+		});
+
+	});
+	
+	//NEW USER
+		
+	$('.submit-new-user').click(function() {
+
+		$('#popup-choose-username .error-msg').html('');
+		
+		if ($('.choose-username').val() == '' || $('.choose-password').val() == '') {
+			$('#popup-choose-username .error-msg').html('Username and password is required');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		} 
+		
+		if ($('.choose-username').val().length <= 5) {
+			$('#popup-choose-username .error-msg').html('Your username must be at least six characters');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		}
+		
+		var username = $('.choose-username').val();
+		if (username.match(/\s/g) || /^[a-zA-Z0-9- ]*$/.test(username) == false) {
+			$('#popup-choose-username .error-msg').html('Username must not contain special characters');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		}
+		
+		if ($('.choose-password').val().length <= 5) {
+			$('#popup-choose-username .error-msg').html('Your password must be at least six characters');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		}
+		
+		if (grecaptcha.getResponse(widgetCpt_newusr) == '') {
+			$('#popup-choose-username .error-msg').html('Invalid reCaptcha');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		}
+
+		$('.ajax-bg, .ajax-loader').css('display', 'block');
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "process/ajax.php?function=newuser&username="+$('.choose-username').val()+"&password="+$('.choose-password').val()+"&ip=::1",
+		}).done(function(response) {
+			
+			$('.ajax-bg, .ajax-loader').css('display', 'none');
+			
+			if (response['status'] == 'OK') {
+				
+				location.href = '';
+			
+			} else if (response['status'] == 'DUPLICATE') {
+				
+				$('#popup-choose-username .error-msg').html('Username is already taken. Please choose different one');
+				$('.error-msg').css('display', 'block');		
+				
+			} else {
+				
+				$('#popup-choose-username .error-msg').html('Cannot process your request. Please try again');
+				$('.error-msg').css('display', 'block');		
+			
+			}	
+		});
+		
+	});
+	
+	//USER SETTINGS
+	$('.usr-settings').click(function() {
+		$('#popup-usr-settings .error-msg').html('');
+		$('.popupwindow').modal('hide');
+		$('#popup-usr-settings').modal('show');
+	});
+
+	$('.submit-usr-settings').click(function() {
+		
+		$('#popup-usr-settings .error-msg').html('');
+		
+		if ($('.usr-setting-name').val() == '') {
+			$('#popup-usr-settings .error-msg').html('Name is required');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		} 
+		
+		if ($('.usr-setting-email').val() == '') {
+			$('#popup-usr-settings .error-msg').html('Email is required');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		}
+		
+		if ($('.usr-setting-email').val() != '') {
+			var email = $('.usr-setting-email').val();
+			if (!validateEmail(email)) {
+				$('#popup-usr-settings .error-msg').html('Email is invalid');
+				$('.error-msg').css('display', 'block');	
+				return false;
+			}
+		}
+
+		if ($('.usr-setting-password').val() != '') {
+			
+			if ($('.usr-setting-password').val().length <= 5) {
+				$('#popup-usr-settings .error-msg').html('Your password must be at least six characters');
+				$('.error-msg').css('display', 'block');	
+				return false;
+			}
+			
+			if ($('.usr-setting-password').val() != $('.usr-setting-rpassword').val()) {
+				$('#popup-usr-settings .error-msg').html('Password does not match');
+				$('.error-msg').css('display', 'block');	
+				return false;
+			}
+			
+		}
+		
+		$('.ajax-bg, .ajax-loader').css('display', 'block');
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "process/ajax.php?function=updateuser&name="+$('.usr-setting-name').val()+"&email="+$('.usr-setting-email').val()+"&password="+$('.usr-setting-password').val(),
+		}).done(function(response) {
+			
+			$('.ajax-bg, .ajax-loader').css('display', 'none');
+			
+			if (response['status'] == 'OK') {
+
+				$('#popup-usr-settings .error-msg').html('Record has been updated');
+				$('.error-msg').css('display', 'block');
+			
+			}
+			
+		});
+		
+	});
+	
+	//SIGN IN
+	$('.user-signin').click(function() {
+		$('#popup-signin .error-msg').html('');
+		$('.popupwindow').modal('hide');
+		$('#popup-signin').modal('show');
+	});
+	
+	$('.user-signin-submit').click(function() {
+		$('#popup-signin .error-msg').html('');
+		
+		if ($('.login-username').val() == '' || $('.login-password').val() == '') {
+			$('#popup-signin .error-msg').html('Username and password is required');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		} 
+		
+		if (grecaptcha.getResponse(widgetCpt_login) == '') {
+			$('#popup-signin .error-msg').html('Invalid reCaptcha');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		}
+
+		$('.ajax-bg, .ajax-loader').css('display', 'block');
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "process/ajax.php?function=signin&username="+$('.login-username').val()+"&password="+$('.login-password').val(),
+		}).done(function(response) {
+			
+			$('.ajax-bg, .ajax-loader').css('display', 'none');
+			
+			if (response['status'] == 'OK') {
+				
+				location.href = '';
+			
+			} else if (response['status'] == 'BOT') {
+				
+				$('#popup-signin .error-msg').html('The admin has tag you as bot and banned you from the system');
+				$('.error-msg').css('display', 'block');		
+				
+			} else {
+				
+				$('#popup-signin .error-msg').html('Invalid login. Please try again');
+				$('.error-msg').css('display', 'block');
+			
+			}	
+		});
+	});
+	
+	//CHECK INCOMING BALANCE
+	if ($('.incoming-balance').length) {
+		
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "process/ajax.php?function=incomingbalance",
+		}).done(function(response) {
+			if (response['status'] == 'OK') {
+				$('.incoming-balance').addClass('incoming-balance-active');
+				$('.incoming-balance').html(response['results']['amount']);
+			} else {
+				$('.incoming-balance').removeClass('incoming-balance-active');
+				$('.incoming-balance').html('');
+			}
+		});
+		
+		setInterval(function(){ 
+			
+
+			$.ajax({
+				type: "GET",
+				crossDomain: false,
+				url: "process/ajax.php?function=incomingbalance",
+			}).done(function(response) {
+				if (response['status'] == 'OK') {
+					$('.incoming-balance').addClass('incoming-balance-active');
+					$('.incoming-balance').html(response['results']['amount']);
+				} else {
+					$('.incoming-balance').removeClass('incoming-balance-active');
+					$('.incoming-balance').html('');
+				}
+			});
+			
+		}, 10000);
+
+	}
+	
+	//DEPOSIT TO BITCOIN ADDRESS
+	$('.deposit-crypto').click(function() {
+
+		$('.ajax-bg, .ajax-loader').css('display', 'block');
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "process/ajax.php?function=getbitcoinaddress",
+		}).done(function(response) {
+			
+			$('.ajax-bg, .ajax-loader').css('display', 'none');
+			
+			if (response['status'] == 'OK') {
+				
+				$('#popup-message .modal-body').html(response['results']['bitcoin_address']);
+				$('#popup-message').modal('show');
+			
+			}
+			
+		});
+		
+	});
+
+	//CHECK STATUS OF MATCHES
+	if ($('.bet-status').length) {
+		
+		var continuescript = true;
+		
+		setInterval(function(){ 
+		
+			if (continuescript == false) {
+				return false;
+			} else {
+				continuescript = false;
+			}
+			
+			$.ajax({
+				type: "GET",
+				crossDomain: false,
+				url: "process/ajax.php?function=getlatestmatch",
+			}).done(function(response) {
+				
+				continuescript = true;
+
+				if (response['status'] == 'OK') {
+					
+					if (response['results']['siteview'] != 'saltybet') window.location.replace("");
+					
+					$('.bet-status').removeClass('bet-status-open');
+					$('.bet-status').removeClass('bet-status-ongoing');
+					$('.bet-status').removeClass('bet-status-closed');
+					
+					$('.bet-amount').prop('disabled', false);
+					$('#range').prop('disabled', false);
+					$('.sbettors1-btn').prop('disabled', false);
+					$('.sbettors1-btn').removeClass('line-through');
+					$('.sbettors2-btn').prop('disabled', false);
+					$('.sbettors2-btn').removeClass('line-through');
+					
+					$('.bet-team1').html(response['results']['sbettors1']);
+					$('.bet-team2').html(response['results']['sbettors2']);
+					
+					$('#match_id').val(response['results']['id']);
+
+					if (response['results']['betstatus'] == 'open') {
+						
+						if (cf_getplayerlists == false) {
+							getplayerlists();
+							cf_getplayerlists = true;
+						}
+						
+						$('.bet-status').addClass('bet-status-open');
+						
+						$('.bet-status').html('Bets are OPEN!');
+						
+						if (response['results']['placedBetAtsbettors'] == null) {
+							
+							if ($('#bet_on_team').val() != '')
+								$('.defplaceyourbets').html('You placed your bet on ' + $('#bet_on_team').val() + ' for ' + $('.bet-amount').val());
+							else 
+								$('.defplaceyourbets').html('Place your bet now');	
+						
+						} else {
+							
+							$('.defplaceyourbets').html('You placed your bet on ' + response['results']['placedBetAtsbettors'] + ' for ' + response['results']['placedBetAmount']);
+						
+						}
+
+						getwallet();
+						
+					} else if (response['results']['betstatus'] == 'ongoing') {
+						
+						if (cf_getplayerlists == true) {
+							getplayerlists();
+							cf_getplayerlists = false;
+						}
+						
+						$('.bet-status').addClass('bet-status-ongoing');
+						
+						$('.bet-status').html('Bets are locked until the next match');
+						$('.bet-status').addClass('bet-status-open');
+						
+						$('.bet-amount').prop('disabled', true);
+						$('#range').prop('disabled', true);
+						$('.sbettors1-btn').prop('disabled', true);
+						$('.sbettors1-btn').addClass('line-through');
+						$('.sbettors2-btn').prop('disabled', true);
+						$('.sbettors2-btn').addClass('line-through');
+						
+						if (response['results']['html'] == null) {
+							$('.defplaceyourbets').html('Match is on going. You can place your bet on next match');	
+						} else {
+							$('.defplaceyourbets').html(response['results']['html']);
+						}
+					
+					} else if (response['results']['betstatus'] == 'closed') {
+
+						$('.bet-status').addClass('bet-status-closed');
+						
+						if (response['results']['winner'] == 'sbettors1') {
+							$('.bet-status').html('Winner '+response['results']['sbettors1'] );
+						} else if (response['results']['winner'] == 'sbettors2') {
+							$('.bet-status').html('Winner '+response['results']['sbettors2'] );
+						}
+						
+						$('.bet-amount').prop('disabled', true);
+						$('#range').prop('disabled', true);
+						$('.sbettors1-btn').prop('disabled', true);
+						$('.sbettors2-btn').prop('disabled', true);
+						
+						if (response['results']['yourBetStatus'] == null) {
+							
+							if ($('#bet_on_team').val() != '') {
+								if ($('#bet_on_sbettors').val() == response['results']['winner'])
+									;//$('.defplaceyourbets').html('You won');
+								else 
+									;//$('.defplaceyourbets').html('You lost');
+							} else {
+								$('.defplaceyourbets').html('Place your bet next on match');
+							}
+							
+						} else {
+							
+							if (response['results']['yourBetStatus'] == 1)
+								;//$('.defplaceyourbets').html('You won');
+							else if (response['results']['yourBetStatus'] == 0)
+								;//$('.defplaceyourbets').html('You lost');
+							else 
+								;//$('.defplaceyourbets').html('Draw');
+						}
+						
+						$('#bet_on_team').val('');
+						$('#bet_on_sbettors').val('');
+						//$('.bet-amount').val('');
+						
+						getwallet();
+					
+					}
+					
+					if (response['results']['bet_result'] != null) {
+						if ($('.notification-alerts').is(":hidden")) {
+							
+							$('.notification-alerts').show();
+							
+							bet_matchID = response['results']['bet_matchID'];
+							
+							if (response['results']['bet_result'] == 'won') {
+								
+								$('.notification-alerts .alert-info').show();
+								$('.notification-alerts .alert-danger').hide();
+							
+							} else if (response['results']['bet_result'] == 'lost') {
+								
+								$('.notification-alerts .alert-danger').show();
+								$('.notification-alerts .alert-info').hide();
+								
+							}
+						}
+
+					}
+					
+				}
+			});
+			
+		}, 1000);
+
+	}
+	
+	//GET FAUCET
+	$('.get-faucet').click(function() {
+		
+		$('.ajax-bg, .ajax-loader').css('display', 'block');
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "process/ajax.php?function=getfaucet",
+		}).done(function(response) {
+			
+			$('.ajax-bg, .ajax-loader').css('display', 'none');
+
+			if (response['status'] == 'SERVERBLOCK') {
+				
+				$('#popup-message .modal-body').html('Please disable vpn or tor');
+				$('#popup-message').modal('show');
+				
+			} else if (response['status'] == 'OK') {
+				
+				$('.wallet-value').html(response['results']['faucet_value']);
+				$('#popup-message .modal-body').html('You have given a faucet amount');
+				$('#popup-message').modal('show');
+
+			} else if (response['status'] == 'TAKEN') {
+				
+				$('#popup-message .modal-body').html('You have already reached faucet limit per day. Please deposit bitcoin amount');
+				$('#popup-message').modal('show');
+				
+			} else if (response['status'] == 'MUSTBEZERO') {
+				
+				$('#popup-message .modal-body').html('Your BTC balance must be 0 in order to use faucet');
+				$('#popup-message').modal('show');		
+			
+			}	
+		});
+		
+	});
+
+	//WITHDRAW BITCOIN
+	$('.withdraw-crypto').click(function() {
+		$('#send-crypto').modal('show');
+	});
+
+	$('.submit-send-btc').click(function() {
+		
+		$('#send-crypto .error-msg').html('');
+		
+		var valid = WAValidator.validate('1KFzzGtDdnq5hrwxXGjwVnKzRbvf8WVxck', 'bitcoin');
+		
+		if ($('.btc-address').val() == '') {
+			$('#send-crypto .error-msg').html('Wallet address is required');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		}
+		
+		if ($('.btc-address').val() != '') {
+			var valid = WAValidator.validate($('.btc-address').val(), 'bitcoin');
+			if (!valid) {
+				$('#send-crypto .error-msg').html('Wallet address is invalid');
+				$('.error-msg').css('display', 'block');
+				return false;
+			}
+		}
+		
+		if ($('.btc-amount').val() == '') {
+			$('#send-crypto .error-msg').html('Amount is required');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		}
+		
+		if (grecaptcha.getResponse(widgetCpt_withdrawbtc) == '') {
+			$('#send-crypto .error-msg').html('Invalid reCaptcha');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		}
+		
+		$('#send-crypto').modal('hide');
+		
+		$('.ajax-bg, .ajax-loader').css('display', 'block');
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "process/ajax.php?function=sendbitcoin&bitcoin_address="+$('.btc-address').val()+"&bitcoin_amount="+$('.btc-amount').val(),
+		}).done(function(response) {
+			
+			$('.ajax-bg, .ajax-loader').css('display', 'none');
+			
+			if (response['status'] == 'OK') {
+				
+				$('.wallet-value').html(response['results']['bitcoin_wallet']);
+				$('#popup-message .modal-body').html(response['results']['message']);
+				$('#popup-message').modal('show');
+			
+			} else {
+			
+				$('#popup-message .modal-body').html(response['results']['message']);
+				$('#popup-message').modal('show');
+			}
+			
+		});
+		
+	});
+
+	//USER BET STATS
+	$('.usr-statistics').click(function() {
+		
+		$('.popupwindow').modal('hide');
+		$('#popup-usr-statistics').modal('show');
+		
+		$('.ajax-bg, .ajax-loader').css('display', 'block');
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "process/ajax.php?function=userstatistics",
+		}).done(function(response) {
+			
+			$('.ajax-bg, .ajax-loader').css('display', 'none');
+			
+			if (response['status'] == 'OK') {
+
+				$('#popup-usr-statistics .html-content').html(response['results']['html']);
+			
+			} else {
+				
+				$('#popup-usr-statistics .modal-body').html('<center>No record(s) found</center>');
+				
+			}
+			
+		});
+		
+	});
+	
+	//REFERRAL PROGRAM
+	$('.usr-referral').click(function() {
+		$('#usr-referral').modal('show');
+	});
+	$('#popup-usr-commissions').modal('show');
+	$('.view-usr-commissions').click(function() {
+		
+		$('.popupwindow').modal('hide');
+		$('#popup-usr-commissions').modal('show');
+		
+		$('.ajax-bg, .ajax-loader').css('display', 'block');
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "process/ajax.php?function=usercommissions",
+		}).done(function(response) {
+			
+			$('.ajax-bg, .ajax-loader').css('display', 'none');
+			
+			if (response['status'] == 'OK') {
+
+				$('#popup-usr-commissions .html-content').html(response['results']['html']);
+			
+			} else {
+				
+				$('#popup-usr-commissions .modal-body').html('<center>No record(s) found</center>');
+				
+			}
+			
+		});
+		
+	});
+	
+	$('.view-send-btc-comission').click(function() {
+		
+		$('.popupwindow').modal('hide');
+		$('#send-crypto-commission').modal('show');
+		
+	});
+	
+	//WITHDRAW COMMISSION
+	$('.withdraw-crypto-commission').click(function() {
+		$('#send-crypto-commission').modal('show');
+	});
+
+	$('.submit-send-btc-commission').click(function() {
+		
+		$('#send-crypto-commission .error-msg').html('');
+		
+		if (grecaptcha.getResponse(widgetCpt_withdrawcommission) == '') {
+			$('#send-crypto-commission .error-msg').html('Invalid reCaptcha');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		}
+		
+		$('#send-crypto-commission').modal('hide');
+		
+		$('.ajax-bg, .ajax-loader').css('display', 'block');
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "process/ajax.php?function=sendbitcoincommission&bitcoin_address="+$('.btc-address-commission').val()+"&bitcoin_amount="+$('.btc-amount-commission').val(),
+		}).done(function(response) {
+			
+			$('.ajax-bg, .ajax-loader').css('display', 'none');
+			
+			if (response['status'] == 'OK') {
+				
+				$('.wallet-value-commission').html(response['results']['bitcoin_commission']);
+				$('#popup-message .modal-body').html(response['results']['message']);
+				$('#popup-message').modal('show');
+			
+			} else {
+			
+				$('#popup-message .modal-body').html(response['results']['message']);
+				$('#popup-message').modal('show');
+			}
+			
+		});
+		
+	});
+
+});
+
+//TOTAL PLAYTIME
+setInterval(function(){ 
+	$.ajax({
+		type: "GET",
+		crossDomain: false,
+		url: "process/ajax.php?function=totalplaytime",
+	}).done(function(response) {
+		;
+	});
+}, 60000);
+
+function getwallet() {
+	if ($('.wallet-value').length) {
+
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "process/ajax.php?function=getbitcoinwallet",
+		}).done(function(response) {
+			
+			if (response['status'] == 'OK') {
+				
+				$('.wallet-value').html(response['results']['bitcoin_wallet']);
+				
+				$(".slider").attr({
+				   "max" : response['results']['bitcoin_wallet'],        
+				});
+				
+				if ($('.bet-status').html == 'Bets are OPEN!') {
+					var defaultbet = parseFloat(response['results']['bitcoin_wallet']);
+					defaultbet = defaultbet * 0.20;
+					defaultbet = defaultbet.toFixed(8);
+					$('.bet-amount').val(defaultbet);
+				}
+			
+			}
+			
+		});
+	}
+}
+
+function getplayerlists() {
+	
+	if ($('.player-lists-content').length) {
+
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "process/ajax.php?function=getplayerlists",
+		}).done(function(response) {
+			
+			if (response['status'] == 'OK') {
+				
+				$('.player-lists-content').html(response['results']['html']);
+			
+			}
+			
+		});
+	}
+}
+
+function validateEmail(email) {
+	var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+	return regex.test(email);
+}
+</script>
+
+<div class="modal fade popupwindow" id="popup-message" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            &nbsp;
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <center><img src="assets/images/logo.png" /></center>
+            </div>
+            <div class="modal-body">&nbsp;</div>
+            <div class="modal-footer"></div>
+            <input type="text" value="" id="clipboard-btc" style="position:fixed; left:-9999999px" />
+        </div>
+    </div>
+</div>
+
+<div class="modal fade popupwindow popup-confirm-placebet" id="popup-confirm-placebet" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            &nbsp;
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <center><img src="assets/images/logo.png" /></center>
+            </div>
+            <div class="modal-body">
+            	
+				<center>
+                    <h4>귀하는 <span class="bet-amount-placed"></span> BTC를 <span class="bet-team-placed">팀에 배팅하셨습니다.</span></h4>
+                </center>
+                
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-primary submit-placebet">확인</button>
+                </div>    
+
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade popupwindow" id="popup-choose-username" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            &nbsp;
+            <center><img src="assets/images/logo.png" /></center>
+            </div>
+            <div class="modal-body">
+                <center>
+                    <h4><div>당신의 브라울러에 비트코인을 배팅하세요!</div> 시작하기 위해 사용자이름을 만드세요!</h4>
+                    <div><input type="text" class="choose-username" placeholder="USERNAME" /></div>
+                    <div><input type="password" class="choose-password" placeholder="PASSWORD" /></div>
+                    <span class="error-msg"></span>
+                    <div class="g-recaptcha" id="g-recaptcha1"></div>
+                </center>
+                
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-primary submit-new-user">계정 만들기</button>
+                    <button type="button" class="btn btn-danger user-signin" data-dismiss="modal" aria-label="Close">로그인</button>
+                </div>      
+
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade popupwindow" id="popup-signin" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            &nbsp;
+            <center><img src="assets/images/logo.png" /></center>
+            </div>
+            <div class="modal-body">
+                <center>
+                    <h4>로그인</h4>
+                    <div><input type="text" class="login-username" placeholder="USERNAME" /></div>
+                    <div><input type="password" class="login-password" placeholder="PASSWORD" /></div>
+                    <span class="error-msg"></span>
+                    <div class="g-recaptcha" id="g-recaptcha2"></div>
+                </center>
+                
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-primary user-signin-submit">로그인</button>
+                    <button type="button" class="btn btn-danger user-create-account">계정 만들기</button>
+                </div>      
+
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade popupwindow" id="send-crypto" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            &nbsp;
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <center><img src="assets/images/logo.png" /></center>
+            </div>
+            <div class="modal-body">
+                <center>
+                    <h4>비트코인 출금</h4>
+                    <div><input type="text" class="btc-address" placeholder="Address" /></div>
+                    <div><input type="text" class="btc-amount" placeholder="Amount" /></div>
+                    <span class="error-msg"></span>
+                    <div class="g-recaptcha" id="g-recaptcha3"></div>
+                </center>
+                
+                                
+                <div class="have-account"><span style="color:#08c;">최소 인출액은</span> <strong style="color:#cf453f;">1.00000000</strong>입니다.</div>
+                
+                <div class="modal-buttons">
+                	<button type="button" class="btn btn-primary submit-send-btc">보내기</button>
+                </div>
+            
+            </div>
+            <div class="modal-footer">
+            	
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade popupwindow" id="usr-referral" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            &nbsp;
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <center><img src="assets/images/logo.png" /></center>
+            </div>
+            <div class="modal-body">
+                <center>
+                    <h4>소개코드</h4>
+                    <div>이 코드를 친구와 공유하고 그들이 이길 때 쉐어를 얻으세요!</div>
+                    <div><u>referrals.php?code=b4d9061695328d38bc6941cf06b4c5r4</u></div>
+                </center>
+                
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-primary" style="background:#fc6324; border:#fc6324; width:200px; margin:0 auto; padding:10px 20px;" onclick="copytoclipboard('referrals.php?code=b4d9061695328d38bc6941cf06b4c5r4', 'clipboard-referral')">코드를 클립보드에 복사하세요</button>
+                    <input type="text" value="" id="clipboard-referral" style="position:fixed; left:-9999999px" />
+                </div>      
+
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade popupwindow popup-usr-commissions in" id="popup-usr-commissions" tabindex="-1" role="dialog" aria-hidden="false" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            &nbsp;
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            <center><img src="http://localhost/bitcoinbrawlers/brawlers/assets/images/logo.png"></center>
+            </div>
+            	
+            <div class="user-bitcoin-commission">
+                <div class="bitcoin-icon-commission"></div>
+                <a class="wallet-commission"><span class="wallet-value-comission">0.00292000</span></a>
+            </div>
+            <div class="clear"></div>
+                
+            <div class="modal-body">
+            	
+				<div class="html-content" style="overflow:auto; height:400px;">
+				<table style="width:100%" class="userbetstats">
+				<tbody><tr>
+					</tr><tr>
+						<th>매치 상황
+						</th><th>사용자
+						</th><th>크레딧</th>
+					</tr>
+				
+			
+				<tr>
+					<td align="center"><div style="color:#cf453f;">Waha- EX3</div> <div style="color:#f0ad4e;">VS</div> <div style="color:#007bcc;">Kona-chan</div></td>
+					<td>teamliquid</td>
+					<td>0.00292000</td>
+				</tr>
+			</tbody></table></div>
+                
+                <div class="modal-buttons">
+                	<button type="button" class="btn btn-primary view-send-btc-comission">커미션 인출하기</button>
+                </div>  
+
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade popupwindow" id="send-crypto-commission" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            &nbsp;
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <center><img src="assets/images/logo.png" /></center>
+            </div>
+            <div class="modal-body">
+                <center>
+                    <h4>커미션 인출하기</h4>
+                    <div><input type="text" class="btc-address-commission" placeholder="Address" /></div>
+                    <div><input type="text" class="btc-amount-commission" placeholder="Amount" /></div>
+                    <span class="error-msg"></span>
+                    <div class="g-recaptcha" id="g-recaptcha4"></div>
+                </center>
+                
+                                
+                <div class="have-account"><span style="color:#08c;">최소 인출액</span> <strong style="color:#cf453f;">1.00000000</strong></div>
+                
+                <div class="modal-buttons">
+                	<button type="button" class="btn btn-primary submit-send-btc-commission">보내기</button>
+                </div>
+            
+            </div>
+            <div class="modal-footer">
+            	
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade popupwindow" id="popup-usr-settings" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            &nbsp;
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <center><img src="assets/images/logo.png" /></center>
+            </div>
+            <div class="modal-body">
+                <center>
+                    <h4>세팅</h4>
+                    <div><input type="text" class="usr-setting-name" placeholder="NAME" value="Raven" /></div>
+                    <div><input type="text" class="usr-setting-email" placeholder="EMAIL" value="t" /></div>
+                    <div><input type="password" class="usr-setting-password" placeholder="NEW PASSWORD" /></div>
+                    <div><input type="password" class="usr-setting-rpassword" placeholder="RE-TYPE PASSWORD" /></div>
+                    <span class="error-msg"></span>
+                    <div class="g-recaptcha" id="g-recaptcha1"></div>
+                </center>
+                
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-primary submit-usr-settings">업데이트</button>
+                </div>      
+
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade popupwindow popup-usr-statistics" id="popup-usr-statistics" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            &nbsp;
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <center><img src="assets/images/logo.png" /></center>
+            </div>
+            <div class="modal-body">
+            	
+				<div class="html-content" style="overflow:auto; height:400px;"></div>
+                
+                <div class="modal-buttons">
+                    &nbsp;
+                </div>      
+
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+var widgetCpt_newusr;
+var widgetCpt_login;
+var widgetCpt_withdrawbtc;
+var CaptchaCallback = function() {
+	widgetCpt_newusr = grecaptcha.render('g-recaptcha1', {'sitekey' : '6Lf0HmUUAAAAAPVd5AEJy6fbvDMWTghxkMt4hods'});
+	widgetCpt_login = grecaptcha.render('g-recaptcha2', {'sitekey' : '6Lf0HmUUAAAAAPVd5AEJy6fbvDMWTghxkMt4hods'});
+	widgetCpt_withdrawbtc = grecaptcha.render('g-recaptcha3', {'sitekey' : '6Lf0HmUUAAAAAPVd5AEJy6fbvDMWTghxkMt4hods'});
+	widgetCpt_withdrawcommission = grecaptcha.render('g-recaptcha4', {'sitekey' : '6Lf0HmUUAAAAAPVd5AEJy6fbvDMWTghxkMt4hods'});
+};
+
+function copytoclipboard(el, target) {
+	$("#"+target).val(el);
+	var copyText = document.getElementById(''+target+'');
+	copyText.select();
+	document.execCommand("copy");
+	alert("Copied to clipboard!");
+}
+</script>
+<script src="https://www.google.com/recaptcha/api.js?onload=CaptchaCallback&render=explicit" async defer></script>
+
+
+</head>
+
+<body>
+
+<div class="ajax-loader"></div>
+<div class="ajax-bg"></div>
+
+<div class="clear"></div>
+<section class="topheader">
+	<div class="container">
+    	<a href="index.php" class="logo"></a>
+        <div class="user-navigation">
+    <a href="#" class="deposit-crypto">DEPOSIT</a>
+    <a href="#" class="withdraw-crypto">WITHDRAW</a>
+    <a href="#" class="get-faucet">포셋</a>
+    <a href="what-is-bitcoin.php">HOW TO BUY BITCOIN</a>
+    <a href="http://localhost/bitcoinbrawlers//esports">ESPORTS</a>
+</div>
+
+<div class="user-bitcoin">
+	<div class="bitcoin-icon"></div>
+    <a class="wallet"><span class="wallet-value">3.91354344</span></a>
+</div>
+
+<div class="user-account">
+	<div class="user-icon"></div>
+    
+    <div class="dropdown account-dropdown">
+        <a class="user-account dropdown-toggle" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">ACCOUNT <span class="downarrow-icon"></span></a>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenu">
+            <a href="#" class="dropdown-item usr-settings">Settings</a>
+            <a href="#" class="dropdown-item usr-statistics">Statistics</a>
+            <a href="#" class="dropdown-item usr-referral">Referral Program</a>
+            <a href="#" class="dropdown-item view-usr-commissions">My Commissions</a>
+            <a href="logout.php" class="dropdown-item usr-logout">Logout</a>
+        </div>
+    </div>
+    
+    <div class="dropdown mobile-dropdown">
+    <a class="mobile-dropdown-menu dropdown-toggle" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">MENU <span class="mobile-icon"></span></a>
+    <div class="dropdown-menu" aria-labelledby="dropdownMenu">
+        <a href="#" class="deposit-crypto">DEPOSIT</a>
+        <a href="#" class="withdraw-crypto">WITHDRAW</a>
+        <a href="#" class="get-faucet">포셋</a>
+        <a href="what-is-bitcoin.php">HOW TO BUY BITCOIN</a>
+        <a href="http://localhost/bitcoinbrawlers//esports">ESPORTS</a>
+    </div>
+    
+    
+</div>
+
+<div class="clear"></div>    </div>
+    <div class="clear"></div>
+    <div class="incoming-balance"></div>    <div class="clear"></div>
+</section>
+
+<div class="notification-alerts">
+  
+  <div class="alert alert-info alert-dismissible fade in">
+    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+    <strong>You Won!</strong> Congratulations on winning your bet!
+  </div>
+
+  <div class="alert alert-danger alert-dismissible fade in">
+    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+    <strong>You Lost!</strong> Better luck next time!
+  </div>
+  
+</div>
+
+<section class="content">
+	<div class="container">
+    
+    	<div class="row">
+            
+            <div class="cols cols-left">
+                
+                <div class="player-lists-content">
+                    <table class="player-lists">
+                        <tr>
+                            <th>
+                                TEAM A
+                            </th>
+                            <th>
+                                TEAM B
+                            </th>
+                        </tr>
+                                                <tr>
+                            <td colspan="2" style="color:#FFF;">
+                                AWAITING PLAYER BETS
+                            </td>
+                        </tr>
+                                        	</table>
+                </div>
+                
+            </div>	
+        
+            <div class="cols cols-center">
+            
+            	<center>
+                    <div class="bet-status bet-status-open">
+                        Bets are OPEN!                    </div>
+                </center>
+                
+                <div class="bet-teams">
+                    <div class="bet-team1"><span></span>Waha- EX3</div>
+                    <div class="bet-vs"><span>VS</span></div>
+                    <div class="bet-team2">Kona-chan<span></span></div>
+                    <div class="clear"></div>
+                </div>
+                
+                <div class="bet-details">
+                
+                	<button type="button" class="btn btn-danger sbettors1-btn " >BET ON THIS TEAM</button>
+                	
+                    <div class="bet-place-amount">
+						                        <input type="text" id="bet-amount" class="bet-amount" value="0.78270869" placeholder="Bet Amount"  />
+                        <input type="hidden" id="bet_on_team" value="" />
+                        <input type="hidden" id="bet_on_sbettors" value="" />
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary sbettors2-btn " >BET ON THIS TEAM</button>
+                            
+                    <div class="clear"></div>
+                    
+                    <div class="bet-slider">
+                        <div class="slidecontainer">
+                            <input type="range" min="0.00000001" max="3.91354344" step="0.00000001" value="0.78270869" class="slider" id="range" >
+                        </div>
+                    </div>
+                    
+                </div>
+
+                <div class="defplaceyourbets">
+				Place your bet now                </div>
+				
+                <iframe id="iframeplayer" src="https://player.twitch.tv/?channel=saltybet" frameborder="0" scrolling="no" height="500" width="100%" allowfullscreen="true"></iframe>				
+               
+            </div>
+
+            <div class="cols cols-right">
+            	<iframe id="chat-frame-stream" height="100%" width="100%" frameborder="0" scrolling="no" src="http://twitch.tv/embed/saltybet/chat?darkpopout"></iframe>            </div>	
+            
+        </div>
+
+    </div>
+    
+    <div class="clear"></div>
+	
+    </div>
+</section>
+
+<section class="footer">
+    <div class="container">
+        <div class="footer-links">
+            <a href="index.php">Home</a>
+            <a href="how-to-buy-bitcoin.php">How to buy Bitcoin</a>
+            <a href="what-is-bitcoin.php">What is Bitcoin</a>
+            <a href="terms-of-service.php">Terms of service</a>
+        </div>
+    </div>
+</section>
+<div class="clear"></div>
+
+</body>
+</html>

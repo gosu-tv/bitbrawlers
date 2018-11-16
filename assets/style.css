@@ -1,0 +1,342 @@
+/* STRUCTURE */
+* {margin:0; padding:0;}
+body {overflow-x:hidden; font-family:'Roboto'; background:url(images/bg.jpg) repeat;}
+.content {margin-top:40px; position:relative; z-index:10001;}
+
+.cols-left {float:left; width:25%;}
+.cols-center {float:left; width:50%;}
+.cols-right {float:left; width:25%; max-height:857px;}
+
+.what-is-bitcoin ul {margin-left:30px;}
+	.what-is-bitcoin ul li {padding-bottom:5px; list-style:circle;}
+	
+.what-is-bitcoin h3 {text-transform:uppercase; margin-top:30px; text-decoration:underline;}
+
+.mobile-dropdown {float:left; display:none;}
+.mobile-icon {background:url(images/mobile-icon.png); width:14px; height:7px; zoom:1.6; display:inline-block; margin-left:8px; float:right; margin-top:3px;}
+	.mobile-dropdown:hover .mobile-icon {background:url(images/mobile-icon.png) 0 -7px;}
+
+.cols {padding-left:10px; padding-right:10px;}
+@media (max-width:1470px) {
+	.cols {
+		padding-left:40px; padding-right:40px;
+	}
+}
+@media (min-width:1400px) {
+	.container {
+		width: 1400px;
+		max-width: 1400px;
+	}
+}
+
+@media (max-width:768px) {
+	.cols {
+		padding-left:10px; padding-right:10px;
+	}
+}
+.cols-page {font-size:17px; line-height:27px; padding-bottom:20px;}
+
+/* HEADER */
+.topheader {background:#1a1d24 !important; padding-top:15px; padding-bottom:15px; width:100%; position:relative; z-index:10002;}
+	.logo {background:url(images/logo.png); width:175px; height:59px; display:block; float:left; margin-right:20px;}
+
+	.user-navigation {float:left;}
+		.user-navigation a {display:inline-block; margin-right:10px; font-size:16px; padding-left:1px; padding-right:1px; color:#FFF; text-decoration:none; margin-top:20px;}
+			.user-navigation a:hover {color:#7eba40;}
+			
+	.user-bitcoin {float:right; border:#ff5d31 solid 1px; margin-top:5px;}
+		.bitcoin-icon {background:url(images/bitcoin-icon.png); width:54px; height:48px; float:left;}
+		.wallet {font-size:16px; padding:13px 15px; display:inline-block;}
+			.wallet:hover {text-decoration:none;}
+			.wallet span {color:#FFF !important;}
+	
+	.user-bitcoin-commission {border:#ff5d31 solid 1px; width:195px; float:right; margin-right:15px;}
+		.bitcoin-icon-commission {background:url(images/bitcoin-icon.png); width:54px; height:48px; float:left;}
+		.wallet-commission {font-size:16px; padding:13px 15px; display:inline-block;}
+			.wallet-commission:hover {text-decoration:none;}
+			.wallet-commission span {color:#FFF !important;}	
+
+	.user-account {float:right;}
+		.account-dropdown {float:left;}
+			.dropdown-menu {background:#1a1d24; -webkit-border-radius:0px; -moz-border-radius:0px; border-radius:0px; padding:10px; z-index:9999999999999 !important;}
+			.dropdown-menu a {display:block !important; margin-top:5px !important; font-size:14px !important;}
+			
+		.user-icon {background:url(images/user-icon.png); width:50px; height:50px; float:left; margin-right:10px; margin-top:5px;}
+		.user-account a {display:inline-block; margin-right:10px; font-size:16px; padding-left:5px; padding-right:5px; color:#FFF; text-decoration:none; margin-top:20px; cursor:pointer;}
+			.user-account a:hover {color:#7eba40;}
+			.downarrow-icon {background:url(images/downarrow-icon.png); width:14px; height:8px; display:inline-block; margin-left:8px; float:right; margin-top:7px;}
+			.user-account a:hover .downarrow-icon {background:url(images/downarrow-icon.png) 0 -8px;}
+			
+.incoming-balance-active {width:100%; color:#FFF; margin-top:10px; text-align:center; background:#333; padding:5px 15px;}
+
+/* PLAYER LISTS */
+.cols-left {height:100%; max-height:820px; overflow:auto;}
+
+.player-lists {width:100%;}		
+	.player-lists tr {background:#262a32; font-weight:bold;}
+	.player-lists tr:nth-child(even) {
+		background: #21252e;
+	}
+	
+	.player-lists tr th {padding:9px 5px; text-align:center; width:50%; font-size:18px;}
+		.player-lists tr th:first-child {color:#53c542;}
+		.player-lists tr th:last-child {color:#ff5d31;}
+		
+	.player-lists tr th:first-child {background:linear-gradient(126deg, #53c542 20%, #262a32 20%); border-bottom:#53c542 solid 2px; border-right:solid #393e48 1px;}
+	.player-lists tr th:last-child {background:linear-gradient(600deg, #ff5d31 20%, #262a32 20%); border-bottom:#ff5d31 solid 2px; border-left:solid #393e48 1px;}
+		
+	.player-lists tr td {padding:9px 5px; text-align:center; width:50%; font-size:13px;}
+		.player-lists tr td:first-child {color:#53c542;}
+		.player-lists tr td:last-child {color:#ff5d31;}
+			
+.playerbetamount {font-size:10px; color:#8c93a2;}
+
+/* BETS */
+.bet-status {background:none !important; color:#53c542; font-weight:300; font-size:16px; border:#53c542 solid 1px; padding:10px 45px 10px 45px !important; display:inline-block;}
+.bet-status-open {background:#44b06f;}
+.bet-status-ongoing {background:#080808;}
+.bet-status-closed {background:#d7c130;}
+
+.bet-teams {margin-top:55px;}
+	.bet-team1 {color:#FFF; width:38%; font-weight:bold; float:left; text-align:center; padding-top:10px; padding-bottom:10px; position:relative;}
+	.bet-vs {font-weight:bold; width:24%; float:left; text-align:center; padding-top:10px; padding-bottom:30px; background:#f0ad4e; position:relative; z-index:2;}
+		.bet-vs span {background:#1f2229; color:#fff; border:#efc134 solid 5px; font-size:18px; font-weight:400; padding:20px 22px; width:73px; position:absolute; -webkit-border-radius:50%; -moz-border-radius:50%; border-radius:50%; top:0; bottom::0; right:0; left:0; margin-left:auto; margin-right:auto; margin-top:-15px;}
+	.bet-team2 {color:#FFF; width:38%; font-weight:bold; float:left; text-align:center; padding-top:10px; padding-bottom:10px; position:relative;}
+	.bet-amount {margin-top:10px;}
+	
+	.bet-team1 {background:linear-gradient(63deg, #930e1b 20%, #cf453f 20%);}
+	.bet-team2 {background:linear-gradient(300deg, #1854c2 20%, #153e88 20%);}
+
+.bet-details {padding-top:40px; background:#262a32; padding-bottom:40px; position:relative;}
+	.sbettors1-btn {float:left; border:#cf453f solid 2px; color:#cf453f !important; background:#262a34 !important; padding:10px 30px; font-weight:bold; -webkit-border-radius:0px; -moz-border-radius:0px; border-radius:0px; margin-right:15px; margin-left:15px; margin-top:5px;}
+	.bet-place-amount {float:left; background:url(images/inputbet-bg.png); width:227px; height:55px; border:none; background-color:#292d37; margin-right:15px;}
+		.bet-amount {background:#292d37 !important; border:none !important; width:223px; margin-left:2px; display:block;  padding:17px 8px !important; color:#FFF !important; font-weight:bold; -webkit-border-radius:0px; -moz-border-radius:0px; border-radius:0px; text-align:center;}
+	.sbettors2-btn {float:left; border:#1150c5 solid 2px; color:#1150c5 !important; background:#262a34 !important; padding:10px 30px; font-weight:bold; -webkit-border-radius:0px; -moz-border-radius:0px; border-radius:0px; margin-right:15px; margin-top:5px;}
+	
+.total_bet_sbettors1 {color:#cf453f;}
+.total_bet_sbettors2 {color:#007bcc;}
+
+.line-through {text-decoration:line-through;}
+	.line-through:hover {text-decoration:line-through;}
+	
+.defplaceyourbets {background:#20242d; color:#f1c929; text-align:center; padding-top:10px; padding-bottom:10px; font-weight:400;}
+
+#iframeplayer {background:#2f323b; width:100%; display:block; padding:10px; margin-top:10px;}
+
+.choose-username, .btc-address {margin-top:10px;}
+.have-account {color:#999; text-align:center; margin-top:10px;}
+.error-msg {color:#900; display:none;}
+.alert-msg {font-size:12px; color:#900; margin-top:5px; text-align:center; margin-bottom:5px;}
+
+/* RECORD LIST */
+.record-list {
+	background:#ffffff;
+	border:#d0d0d0 solid 1px;
+	clear: both;
+	color: #333;
+	width:80%;
+	border-spacing:0;
+    border-collapse:collapse;
+	font-size:12px;
+}
+.record-list th {
+	border:0;
+	border-bottom:2px solid #555;	
+	padding:4px;
+	background-color:#323232;
+	color:#FFFFFF;
+	text-align:left;
+}
+.record-list th a {
+	display: block;
+	text-decoration: none;
+}
+.record-list tr td {
+	padding: 12px 5px 5px 5px;
+	border-bottom:#CCC solid 1px;
+	vertical-align: top;
+}
+.record-list tr:nth-child(even) {
+	background: #ffffff;
+}
+.record-list tr td a {
+	color:#124E96;
+}
+
+/* PAGINATION */
+#pagination-table {margin-top:10px;}
+#pagination-table input[type=submit], #pagination-table input[type=button] {
+	background:#5767b0; border:none; color:#FFF;
+	-webkit-border-radius:5px; -moz-border-radius:5px; border-radius:5px;
+	padding:5px;
+	cursor:pointer;
+	width:70px;
+	float:left;
+	margin-left:10px;
+}
+.paginationlink {padding:5px 9px 5px 9px; text-align:center; background:#ffffff; margin-left:5px; color:#5767b0; -webkit-border-radius:5px; -moz-border-radius:5px; border-radius:5px; cursor:pointer;}
+	.paginationlink-active, .paginationlink:hover {padding:5px 9px 5px 9px; text-align:center; background:#5767b0; margin-left:5px; color:#ffffff !important; -webkit-border-radius:5px; -moz-border-radius:5px; border-radius:5px; text-decoration:none !important;}
+
+/* MODAL */
+.modal-backdrop {z-index:10009;}
+
+.modal h3 {font-size:17px;}
+
+.modal.fade.in {z-index:100000; background:#151720; max-width:450px;}
+	.modal-header .close {background:#fff; padding:5px 10px;}
+	.modal-header {border-bottom:none;}
+	.modal-body {color:#FFF; overflow:hidden; max-height:600px; word-break: break-word;}
+	
+	.modal.fade.in.popup-usr-statistics {max-width:80%; width:80%; left:20%;}
+
+	.modal-footer {background:#151720; border-top:none; box-shadow:none;}
+	
+#usr-referral div {padding-bottom:10px;}
+	
+#popup-message .modal-body {text-align:center;}
+
+	.modal-body input[type=text], .modal-body input[type=password] {background:#1a1c27; border:#1a1c27; color:#797c8b; -webkit-border-radius:0px; -moz-border-radius:0px; border-radius:0px; width:90%; padding:25px 15px; margin-top:5px;}
+
+.modal-buttons {margin-top:15px;}
+	.modal-buttons button {width:100%; display:block; padding:10px; -webkit-border-radius:0px; -moz-border-radius:0px; border-radius:0px;}
+	.modal-buttons .btn-primary {background:#fc6324; border:#fc6324;}
+		.modal-buttons .btn-primary:hover {opacity:0.8;}
+	.modal-buttons .btn-danger {margin-top:15px; background:#151720; border:#fff solid 1px;}
+		.modal-buttons .btn-danger:hover {opacity:0.8;}
+
+.bit-address {color:#fc6324;}
+
+.userbetstats tr {background:#262a32; font-weight:bold;}
+	.userbetstats tr:nth-child(even) {
+		background: #21252e;
+	}
+	.userbetstats tr th {padding:9px 5px; text-align:center;}
+
+	.userbetstats tr td {padding:9px 5px; text-align:center; font-size:13px;}
+		
+#popup-choose-username h4 div {padding-bottom:10px;}
+
+/* SLIDER */
+.bet-slider {width:200px; margin-left:auto; margin-right:auto; margin-top:10px;}
+
+.slidecontainer {
+	margin-left:-1px;
+    width: 100%;
+}
+
+.slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 25px;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+}
+
+.slider:hover {
+    opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    background: #53c542;
+    cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    background: #4CAF50;
+    cursor: pointer;
+}
+
+/* NOTIFICATION ALERTS */
+.notification-alerts {position:fixed; bottom:top; right:20px; display:none;}
+
+/* FOOTER */
+.footer {padding-top:30px; background:#262a32; padding-bottom:30px; text-align:center; margin-top:15px; position:static; z-index:10002;}
+	.footer-links a {margin-right:10px; display:inline-block;}
+
+/* GENERCIC */
+.ajax-loader {background:url(images/ajax-loader.gif); width:43px; height:11px; position:fixed; top:0; bottom:0; left:0; right:0; margin:auto auto; z-index:9999999999; display:none;}
+.ajax-bg {position:fixed; height:100%; width:100%; z-index:99999999; background:#000; opacity:0.5; display:none;}
+.clear {clear:both;}
+.g-recaptcha {margin-top:5px;}
+
+input[type=text]:focus {
+	outline: none;
+	box-shadow:none !important;
+}
+
+/* RESPONSIVE */
+@media (max-width:1400px) {
+.container {max-width:100%; width:100%;}
+	
+	.cols-left {float:left; width:48%; max-width:48%; margin-left:15px; margin-top:870px; min-height:500px;}
+	.cols-center {float:none; width:100%; max-width:100%; position:absolute; margin-left:auto; margin-right:auto; left:0; right:0;}
+	.cols-right {float:right; width:49%; max-width:49%; margin-left:23px; margin-top:870px; min-height:500px;}
+		
+		.sbettors1-btn {float:left;}
+		.bet-place-amount {float:none; position:absolute; margin-left:auto; margin-right:auto; left:0; right:0;}
+		.sbettors2-btn {float:right;}
+		
+	.bet-slider {margin-top:15px;}
+}
+
+@media (max-width:1269px) {
+	.cols-left {float:left; width:48%; max-width:48%; margin-left:15px;}
+	.cols-right {float:right; width:50%; max-width:50%; margin-left:0.111%;}	
+}
+
+@media (max-width:1193px) {
+	.cols-left {margin-left:0; width:50%; max-width:50%;}	
+	.cols-right {margin-left:0; width:50%; max-width:50%;}	
+}
+
+@media (max-width:960px) {
+	.mobile-dropdown {display:block;}
+	.user-navigation {display:none;}
+}
+
+@media (max-width:768px) {
+body {padding-left:0; padding-right:0;}
+	
+	.bet-status {width:100%;}
+	
+	.bet-place-amount {margin-top:75px;}
+	.bet-details {padding-bottom:30px;}
+	
+	.cols-left {float:none; width:99%; max-width:99%; margin-left:-5px; padding:0; min-height:500px; overflow:auto; border:#21252e solid 2px; margin-top:940px;}
+	.cols-right {float:none; width:100%; width:99%; max-width:99%; margin-left:-5px; padding:0; max-width:100%; margin-top:20px;}	
+	
+	.bet-slider {margin-top:90px;}
+}
+
+@media (max-width:661px) {	
+	.user-icon {display:none;}
+}
+
+@media (max-width:589px) {	
+	.user-icon {display:none;}
+}
+
+@media (max-width:485px) {
+	
+	.bet-team1, .bet-team2 {font-size:12px;}
+	.sbettors1-btn, .sbettors2-btn {padding:5px 5px; font-size:12px;}
+	
+	.bet-slider {margin-top:100px;}
+}
+
+@media (max-width:360px) {
+	.sbettors1-btn, .sbettors2-btn {padding:2px 2px; font-size:10px;}
+	.sbettors1-btn {margin-left:5px;}
+	.sbettors2-btn {margin-right:5px;}
+	
+	.bet-slider {margin-top:105px;}
+}

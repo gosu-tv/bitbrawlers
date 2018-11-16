@@ -1,0 +1,1409 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>BitBrawlers | Brawlers</title>
+<link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="assets/bootstrap/css/bootstrap-grid.min.css">
+<link rel="stylesheet" href="assets/bootstrap/css/bootstrap-responsive.min.css">
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,600,700" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script type="text/javascript" src="assets/js/jquery-3.2.1.js"></script>
+<script type="text/javascript" src="assets/bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="assets/js/wallet-validator/wallet-address-validator/dist/wallet-address-validator.min.js"></script><script type="text/javascript">
+var cf_getplayerlists = false;
+var bet_matchID;
+var sbettors;
+
+$(document).ready(function() {
+	
+	//FIXED HEADER
+	$(document).scroll(function() {
+		if ($(document).scrollTop() >= 100) {
+			$('.topheader').css('position', 'fixed');
+			$('.topheader').css('top', '0');
+		} else {
+			$('.topheader').css('position', 'relative');
+		}
+	});
+	if ($(document).scrollTop() >= 100) {
+		$('.topheader').css('position', 'fixed');
+		$('.topheader').css('top', '0');
+	} else {
+		$('.topheader').css('position', 'relative');
+	}
+	
+	//BET SLIDER
+	if ($('#range').length) {
+		var slider = document.getElementById("range");
+		var output = document.getElementById("bet-amount");
+		output.innerHTML = slider.value;
+		slider.oninput = function() {
+			output.value = parseFloat(this.value).toFixed(8);
+		}
+	}
+	
+	//NOTIFICATION ALERTS
+	$('.alert-dismissible a').click(function() {
+		$('.notification-alerts').hide();
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "http://localhost/bitcoinbrawlers/brawlers/process/ajax.php?function=hidealerts&matchID="+bet_matchID,
+		}).done(function(response) {
+			;
+		});
+	});
+	
+	//FORMAT BITCOIN
+	$('.bet-amount').blur(function() {
+		if ($(this).val() == '')
+			return true;
+		else
+			$(this).val(parseFloat($(this).val()).toFixed(8));
+	});
+	$('.bet-amount').keypress(function(eve) {
+		if (eve.which == 46 && $(this).caret().start == 0)
+			;
+		else if ((eve.which != 46 || $(this).val().indexOf('.') != -1) && (eve.which < 48 || eve.which > 57)) {
+			eve.preventDefault();
+		}
+	});
+	
+	//PLACE BETS
+	$('.sbettors1-btn, .sbettors2-btn').click(function() {
+		
+		if ($(this).hasClass('sbettors1-btn')) {
+			sbettors = 1;
+		} else if ($(this).hasClass('sbettors2-btn')) {
+			sbettors = 2;
+		}
+		
+		$('.popup-confirm-placebet .bet-amount-placed').html('');
+		$('.popup-confirm-placebet .bet-team-placed').html('');
+		
+		if ($(this).hasClass('sbettors1-btn')) {
+			$('.popup-confirm-placebet .bet-team-placed').html('RED');
+		} else if ($(this).hasClass('sbettors2-btn')) {
+			$('.popup-confirm-placebet .bet-team-placed').html('BLUE');
+		}
+		
+		$('.popup-confirm-placebet .bet-amount-placed').html($('.bet-amount').val());
+		
+		$('.popup-confirm-placebet').modal('show');
+
+	});
+	
+	$('.submit-placebet').click(function() {
+		
+		$('.popupwindow').modal('hide');
+		
+		if ($('.bet-amount').val() == '') {
+			
+			$('#popup-message .modal-body').html('Please place bet amount');
+			$('#popup-message').modal('show');
+			return false;
+		
+		}
+
+		$('.ajax-bg, .ajax-loader').css('display', 'block');
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "http://localhost/bitcoinbrawlers/brawlers/process/ajax.php?function=placebet&sbettors=sbettors"+sbettors+"&betamount="+$('.bet-amount').val()+"",
+		}).done(function(response) {
+			
+			$('.ajax-bg, .ajax-loader').css('display', 'none');
+			
+			if (response['status'] == 'OK') {
+				
+				if (sbettors == 1) {
+					$('#bet_on_team').val($('.bet-team1').html());
+					$('#bet_on_sbettors').val('sbettors1');
+				
+				} else if (sbettors == 2) {
+					$('#bet_on_team').val($('.bet-team2').html());
+					$('#bet_on_sbettors').val('sbettors2');
+				}
+					
+				$('#popup-message .modal-body').html('You have successfully placed your bet');
+				$('#popup-message').modal('show');
+				$('.defplaceyourbets').html('You placed your bet on ' + response['results']['placedBetAtsbettors'] + ' for ' + response['results']['placedBetAmount']);
+				
+				getwallet();
+				
+			} else if (response['status'] == 'FAILED') {
+					
+				$('#popup-message .modal-body').html('Error placing your bet. Match already locked');
+				$('#popup-message').modal('show');
+				$('.defplaceyourbets').html('Place your bet now');				
+			
+			} else if (response['status'] == 'BETONPLACED') {
+					
+				$('#popup-message .modal-body').html('You already placed your bet. Please wait for the next match to place another bet');
+				$('#popup-message').modal('show');
+						
+			} else if (response['status'] == 'ZEROBALANCE') {
+					
+				$('#popup-message .modal-body').html('You have zero balance in your account');
+				$('#popup-message').modal('show');
+				$('.defplaceyourbets').html('Place your bet now');				
+			
+			} else if (response['status'] == 'GREATERTHANBALANCE') {
+					
+				$('#popup-message .modal-body').html('Your bet is greater than your balance');
+				$('#popup-message').modal('show');
+				$('.defplaceyourbets').html('Place your bet now');				
+			
+			}	
+				
+		});
+
+	});
+	
+	//NEW USER
+		
+	$('.submit-new-user').click(function() {
+
+		$('#popup-choose-username .error-msg').html('');
+		
+		if ($('.choose-username').val() == '' || $('.choose-password').val() == '') {
+			$('#popup-choose-username .error-msg').html('Username and password is required');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		} 
+		
+		if ($('.choose-username').val().length <= 5) {
+			$('#popup-choose-username .error-msg').html('Your username must be at least six characters');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		}
+		
+		var username = $('.choose-username').val();
+		if (username.match(/\s/g) || /^[a-zA-Z0-9- ]*$/.test(username) == false) {
+			$('#popup-choose-username .error-msg').html('Username must not contain special characters');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		}
+		
+		if ($('.choose-password').val().length <= 5) {
+			$('#popup-choose-username .error-msg').html('Your password must be at least six characters');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		}
+		
+		if (grecaptcha.getResponse(widgetCpt_newusr) == '') {
+			$('#popup-choose-username .error-msg').html('Invalid reCaptcha');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		}
+
+		$('.ajax-bg, .ajax-loader').css('display', 'block');
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "http://localhost/bitcoinbrawlers/brawlers/process/ajax.php?function=newuser&username="+$('.choose-username').val()+"&password="+$('.choose-password').val()+"&ip=::1",
+		}).done(function(response) {
+			
+			$('.ajax-bg, .ajax-loader').css('display', 'none');
+			
+			if (response['status'] == 'OK') {
+				
+				location.href = 'http://localhost/bitcoinbrawlers/brawlers/';
+			
+			} else if (response['status'] == 'DUPLICATE') {
+				
+				$('#popup-choose-username .error-msg').html('Username is already taken. Please choose different one');
+				$('.error-msg').css('display', 'block');		
+				
+			} else {
+				
+				$('#popup-choose-username .error-msg').html('Cannot process your request. Please try again');
+				$('.error-msg').css('display', 'block');		
+			
+			}	
+		});
+		
+	});
+	
+	//USER SETTINGS
+	$('.usr-settings').click(function() {
+		$('#popup-usr-settings .error-msg').html('');
+		$('.popupwindow').modal('hide');
+		$('#popup-usr-settings').modal('show');
+	});
+
+	$('.submit-usr-settings').click(function() {
+		
+		$('#popup-usr-settings .error-msg').html('');
+		
+		if ($('.usr-setting-name').val() == '') {
+			$('#popup-usr-settings .error-msg').html('Name is required');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		} 
+		
+		if ($('.usr-setting-email').val() == '') {
+			$('#popup-usr-settings .error-msg').html('Email is required');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		}
+		
+		if ($('.usr-setting-email').val() != '') {
+			var email = $('.usr-setting-email').val();
+			if (!validateEmail(email)) {
+				$('#popup-usr-settings .error-msg').html('Email is invalid');
+				$('.error-msg').css('display', 'block');	
+				return false;
+			}
+		}
+
+		if ($('.usr-setting-password').val() != '') {
+			
+			if ($('.usr-setting-password').val().length <= 5) {
+				$('#popup-usr-settings .error-msg').html('Your password must be at least six characters');
+				$('.error-msg').css('display', 'block');	
+				return false;
+			}
+			
+			if ($('.usr-setting-password').val() != $('.usr-setting-rpassword').val()) {
+				$('#popup-usr-settings .error-msg').html('Password does not match');
+				$('.error-msg').css('display', 'block');	
+				return false;
+			}
+			
+		}
+		
+		$('.ajax-bg, .ajax-loader').css('display', 'block');
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "http://localhost/bitcoinbrawlers/brawlers/process/ajax.php?function=updateuser&name="+$('.usr-setting-name').val()+"&email="+$('.usr-setting-email').val()+"&password="+$('.usr-setting-password').val(),
+		}).done(function(response) {
+			
+			$('.ajax-bg, .ajax-loader').css('display', 'none');
+			
+			if (response['status'] == 'OK') {
+
+				$('#popup-usr-settings .error-msg').html('Record has been updated');
+				$('.error-msg').css('display', 'block');
+			
+			}
+			
+		});
+		
+	});
+	
+	//SIGN IN
+	$('.user-signin').click(function() {
+		$('#popup-signin .error-msg').html('');
+		$('.popupwindow').modal('hide');
+		$('#popup-signin').modal('show');
+	});
+	
+	$('.user-signin-submit').click(function() {
+		$('#popup-signin .error-msg').html('');
+		
+		if ($('.login-username').val() == '' || $('.login-password').val() == '') {
+			$('#popup-signin .error-msg').html('Username and password is required');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		} 
+		
+		if (grecaptcha.getResponse(widgetCpt_login) == '') {
+			$('#popup-signin .error-msg').html('Invalid reCaptcha');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		}
+
+		$('.ajax-bg, .ajax-loader').css('display', 'block');
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "http://localhost/bitcoinbrawlers/brawlers/process/ajax.php?function=signin&username="+$('.login-username').val()+"&password="+$('.login-password').val(),
+		}).done(function(response) {
+			
+			$('.ajax-bg, .ajax-loader').css('display', 'none');
+			
+			if (response['status'] == 'OK') {
+				
+				location.href = 'http://localhost/bitcoinbrawlers/brawlers/';
+			
+			} else if (response['status'] == 'BOT') {
+				
+				$('#popup-signin .error-msg').html('The admin has tag you as bot and banned you from the system');
+				$('.error-msg').css('display', 'block');		
+				
+			} else {
+				
+				$('#popup-signin .error-msg').html('Invalid login. Please try again');
+				$('.error-msg').css('display', 'block');
+			
+			}	
+		});
+	});
+	
+	//CHECK INCOMING BALANCE
+	if ($('.incoming-balance').length) {
+		
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "http://localhost/bitcoinbrawlers/brawlers/process/ajax.php?function=incomingbalance",
+		}).done(function(response) {
+			if (response['status'] == 'OK') {
+				$('.incoming-balance').addClass('incoming-balance-active');
+				$('.incoming-balance').html(response['results']['amount']);
+			} else {
+				$('.incoming-balance').removeClass('incoming-balance-active');
+				$('.incoming-balance').html('');
+			}
+		});
+		
+		setInterval(function(){ 
+			
+			$.ajax({
+				type: "GET",
+				crossDomain: false,
+				url: "http://localhost/bitcoinbrawlers/brawlers/process/ajax.php?function=incomingbalance",
+			}).done(function(response) {
+				if (response['status'] == 'OK') {
+					$('.incoming-balance').addClass('incoming-balance-active');
+					$('.incoming-balance').html(response['results']['amount']);
+				} else {
+					$('.incoming-balance').removeClass('incoming-balance-active');
+					$('.incoming-balance').html('');
+				}
+			});
+			
+		}, 10000);
+
+	}
+	
+	//DEPOSIT TO BITCOIN ADDRESS
+	$('.deposit-crypto').click(function() {
+
+		$('.ajax-bg, .ajax-loader').css('display', 'block');
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "http://localhost/bitcoinbrawlers/brawlers/process/ajax.php?function=getbitcoinaddress",
+		}).done(function(response) {
+			
+			$('.ajax-bg, .ajax-loader').css('display', 'none');
+			
+			if (response['status'] == 'OK') {
+				
+				$('#popup-message .modal-body').html(response['results']['bitcoin_address']);
+				$('#popup-message').modal('show');
+			
+			}
+			
+		});
+		
+	});
+
+	//CHECK STATUS OF MATCHES
+	if ($('.bet-status').length) {
+		
+		var continuescript = true;
+		
+		setInterval(function(){ 
+		
+			if (continuescript == false) {
+				return false;
+			} else {
+				continuescript = false;
+			}
+			
+			$.ajax({
+				type: "GET",
+				crossDomain: false,
+				url: "http://localhost/bitcoinbrawlers/brawlers/process/ajax.php?function=getlatestmatch",
+			}).done(function(response) {
+				
+				continuescript = true;
+
+				if (response['status'] == 'OK') {
+					
+					if (response['results']['siteview'] != 'saltybet') window.location.replace("http://localhost/bitcoinbrawlers/brawlers/");
+					
+					$('.bet-status').removeClass('bet-status-open');
+					$('.bet-status').removeClass('bet-status-ongoing');
+					$('.bet-status').removeClass('bet-status-closed');
+					
+					$('.bet-amount').prop('disabled', false);
+					$('#range').prop('disabled', false);
+					$('.sbettors1-btn').prop('disabled', false);
+					$('.sbettors1-btn').removeClass('line-through');
+					$('.sbettors2-btn').prop('disabled', false);
+					$('.sbettors2-btn').removeClass('line-through');
+					
+					$('.bet-team1').html(response['results']['sbettors1']);
+					$('.bet-team2').html(response['results']['sbettors2']);
+					
+					$('#match_id').val(response['results']['id']);
+
+					if (response['results']['betstatus'] == 'open') {
+						
+						if (cf_getplayerlists == false) {
+							getplayerlists();
+							cf_getplayerlists = true;
+						}
+						
+						$('.bet-status').addClass('bet-status-open');
+						
+						$('.bet-status').html('Bets are OPEN!');
+						
+						if (response['results']['placedBetAtsbettors'] == null) {
+							
+							if ($('#bet_on_team').val() != '')
+								$('.defplaceyourbets').html('You placed your bet on ' + $('#bet_on_team').val() + ' for ' + $('.bet-amount').val());
+							else 
+								$('.defplaceyourbets').html('Place your bet now');	
+						
+						} else {
+							
+							$('.defplaceyourbets').html('You placed your bet on ' + response['results']['placedBetAtsbettors'] + ' for ' + response['results']['placedBetAmount']);
+						
+						}
+
+						getwallet();
+						
+					} else if (response['results']['betstatus'] == 'ongoing') {
+						
+						if (cf_getplayerlists == true) {
+							getplayerlists();
+							cf_getplayerlists = false;
+						}
+						
+						$('.bet-status').addClass('bet-status-ongoing');
+						
+						$('.bet-status').html('Bets are locked until the next match');
+						$('.bet-status').addClass('bet-status-open');
+						
+						$('.bet-amount').prop('disabled', true);
+						$('#range').prop('disabled', true);
+						$('.sbettors1-btn').prop('disabled', true);
+						$('.sbettors1-btn').addClass('line-through');
+						$('.sbettors2-btn').prop('disabled', true);
+						$('.sbettors2-btn').addClass('line-through');
+						
+						if (response['results']['html'] == null) {
+							$('.defplaceyourbets').html('Match is on going. You can place your bet on next match');	
+						} else {
+							$('.defplaceyourbets').html(response['results']['html']);
+						}
+					
+					} else if (response['results']['betstatus'] == 'closed') {
+
+						$('.bet-status').addClass('bet-status-closed');
+						
+						if (response['results']['winner'] == 'sbettors1') {
+							$('.bet-status').html('Winner '+response['results']['sbettors1'] );
+						} else if (response['results']['winner'] == 'sbettors2') {
+							$('.bet-status').html('Winner '+response['results']['sbettors2'] );
+						}
+						
+						$('.bet-amount').prop('disabled', true);
+						$('#range').prop('disabled', true);
+						$('.sbettors1-btn').prop('disabled', true);
+						$('.sbettors2-btn').prop('disabled', true);
+						
+						if (response['results']['yourBetStatus'] == null) {
+							
+							if ($('#bet_on_team').val() != '') {
+								if ($('#bet_on_sbettors').val() == response['results']['winner'])
+									;//$('.defplaceyourbets').html('You won');
+								else 
+									;//$('.defplaceyourbets').html('You lost');
+							} else {
+								$('.defplaceyourbets').html('Place your bet next on match');
+							}
+							
+						} else {
+							
+							if (response['results']['yourBetStatus'] == 1)
+								;//$('.defplaceyourbets').html('You won');
+							else if (response['results']['yourBetStatus'] == 0)
+								;//$('.defplaceyourbets').html('You lost');
+							else 
+								;//$('.defplaceyourbets').html('Draw');
+						}
+						
+						$('#bet_on_team').val('');
+						$('#bet_on_sbettors').val('');
+						//$('.bet-amount').val('');
+						
+						getwallet();
+					
+					}
+					
+					if (response['results']['bet_result'] != null) {
+						if ($('.notification-alerts').is(":hidden")) {
+							
+							$('.notification-alerts').show();
+							
+							bet_matchID = response['results']['bet_matchID'];
+							
+							if (response['results']['bet_result'] == 'won') {
+								
+								$('.notification-alerts .alert-info').show();
+								$('.notification-alerts .alert-danger').hide();
+							
+							} else if (response['results']['bet_result'] == 'lost') {
+								
+								$('.notification-alerts .alert-danger').show();
+								$('.notification-alerts .alert-info').hide();
+								
+							}
+						}
+
+					}
+					
+				}
+			});
+			
+		}, 1000);
+
+	}
+	
+	//GET FAUCET
+	$('.get-faucet').click(function() {
+		
+		$('.ajax-bg, .ajax-loader').css('display', 'block');
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "http://localhost/bitcoinbrawlers/brawlers/process/ajax.php?function=getfaucet",
+		}).done(function(response) {
+			
+			$('.ajax-bg, .ajax-loader').css('display', 'none');
+
+			if (response['status'] == 'SERVERBLOCK') {
+				
+				$('#popup-message .modal-body').html('Please disable vpn or tor');
+				$('#popup-message').modal('show');
+				
+			} else if (response['status'] == 'OK') {
+				
+				$('.wallet-value').html(response['results']['faucet_value']);
+				$('#popup-message .modal-body').html('You have given a faucet amount');
+				$('#popup-message').modal('show');
+
+			} else if (response['status'] == 'TAKEN') {
+				
+				$('#popup-message .modal-body').html('You have already reached faucet limit per day. Please deposit bitcoin amount');
+				$('#popup-message').modal('show');
+				
+			} else if (response['status'] == 'MUSTBEZERO') {
+				
+				$('#popup-message .modal-body').html('Your BTC balance must be 0 in order to use faucet');
+				$('#popup-message').modal('show');		
+			
+			}	
+		});
+		
+	});
+
+	//WITHDRAW BITCOIN
+	$('.withdraw-crypto').click(function() {
+		$('#send-crypto').modal('show');
+	});
+
+	$('.submit-send-btc').click(function() {
+		
+		$('#send-crypto .error-msg').html('');
+		
+		var valid = WAValidator.validate('1KFzzGtDdnq5hrwxXGjwVnKzRbvf8WVxck', 'bitcoin');
+		
+		if ($('.btc-address').val() == '') {
+			$('#send-crypto .error-msg').html('Wallet address is required');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		}
+		
+		if ($('.btc-address').val() != '') {
+			var valid = WAValidator.validate($('.btc-address').val(), 'bitcoin');
+			if (!valid) {
+				$('#send-crypto .error-msg').html('Wallet address is invalid');
+				$('.error-msg').css('display', 'block');
+				return false;
+			}
+		}
+		
+		if ($('.btc-amount').val() == '') {
+			$('#send-crypto .error-msg').html('Amount is required');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		}
+		
+		if (grecaptcha.getResponse(widgetCpt_withdrawbtc) == '') {
+			$('#send-crypto .error-msg').html('Invalid reCaptcha');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		}
+		
+		$('#send-crypto').modal('hide');
+		
+		$('.ajax-bg, .ajax-loader').css('display', 'block');
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "http://localhost/bitcoinbrawlers/brawlers/process/ajax.php?function=sendbitcoin&bitcoin_address="+$('.btc-address').val()+"&bitcoin_amount="+$('.btc-amount').val(),
+		}).done(function(response) {
+			
+			$('.ajax-bg, .ajax-loader').css('display', 'none');
+			
+			if (response['status'] == 'OK') {
+				
+				$('.wallet-value').html(response['results']['bitcoin_wallet']);
+				$('#popup-message .modal-body').html(response['results']['message']);
+				$('#popup-message').modal('show');
+			
+			} else {
+			
+				$('#popup-message .modal-body').html(response['results']['message']);
+				$('#popup-message').modal('show');
+			}
+			
+		});
+		
+	});
+
+	//USER BET STATS
+	$('.usr-statistics').click(function() {
+		
+		$('.popupwindow').modal('hide');
+		$('#popup-usr-statistics').modal('show');
+		
+		$('.ajax-bg, .ajax-loader').css('display', 'block');
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "http://localhost/bitcoinbrawlers/brawlers/process/ajax.php?function=userstatistics",
+		}).done(function(response) {
+			
+			$('.ajax-bg, .ajax-loader').css('display', 'none');
+			
+			if (response['status'] == 'OK') {
+
+				$('#popup-usr-statistics .html-content').html(response['results']['html']);
+			
+			} else {
+				
+				$('#popup-usr-statistics .modal-body').html('<center>No record(s) found</center>');
+				
+			}
+			
+		});
+		
+	});
+	
+	//REFERRAL PROGRAM
+	$('.usr-referral').click(function() {
+		$('#usr-referral').modal('show');
+	});
+	
+	$('.view-usr-commissions').click(function() {
+		
+		$('.popupwindow').modal('hide');
+		$('#popup-usr-commissions').modal('show');
+		
+		$('.ajax-bg, .ajax-loader').css('display', 'block');
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "http://localhost/bitcoinbrawlers/brawlers/process/ajax.php?function=usercommissions",
+		}).done(function(response) {
+			
+			$('.ajax-bg, .ajax-loader').css('display', 'none');
+			
+			if (response['status'] == 'OK') {
+
+				$('#popup-usr-commissions .html-content').html(response['results']['html']);
+			
+			} else {
+				
+				$('#popup-usr-commissions .modal-body').html('<center>No record(s) found</center>');
+				
+			}
+			
+		});
+		
+	});
+	
+	$('.view-send-btc-comission').click(function() {
+		
+		$('.popupwindow').modal('hide');
+		$('#send-crypto-commission').modal('show');
+		
+	});
+	
+	//WITHDRAW COMMISSION
+	$('.withdraw-crypto-commission').click(function() {
+		$('#send-crypto-commission').modal('show');
+	});
+
+	$('.submit-send-btc-commission').click(function() {
+		
+		$('#send-crypto-commission .error-msg').html('');
+		
+		if (grecaptcha.getResponse(widgetCpt_withdrawcommission) == '') {
+			$('#send-crypto-commission .error-msg').html('Invalid reCaptcha');
+			$('.error-msg').css('display', 'block');	
+			return false;
+		}
+		
+		$('#send-crypto-commission').modal('hide');
+		
+		$('.ajax-bg, .ajax-loader').css('display', 'block');
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "http://localhost/bitcoinbrawlers/brawlers/process/ajax.php?function=sendbitcoincommission&bitcoin_address="+$('.btc-address-commission').val()+"&bitcoin_amount="+$('.btc-amount-commission').val(),
+		}).done(function(response) {
+			
+			$('.ajax-bg, .ajax-loader').css('display', 'none');
+			
+			if (response['status'] == 'OK') {
+				
+				$('.wallet-value-commission').html(response['results']['bitcoin_commission']);
+				$('#popup-message .modal-body').html(response['results']['message']);
+				$('#popup-message').modal('show');
+			
+			} else {
+			
+				$('#popup-message .modal-body').html(response['results']['message']);
+				$('#popup-message').modal('show');
+			}
+			
+		});
+		
+	});
+
+});
+
+//TOTAL PLAYTIME
+setInterval(function(){ 
+	$.ajax({
+		type: "GET",
+		crossDomain: false,
+		url: "http://localhost/bitcoinbrawlers/brawlers/process/ajax.php?function=totalplaytime",
+	}).done(function(response) {
+		;
+	});
+}, 60000);
+
+function getwallet() {
+	if ($('.wallet-value').length) {
+
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "http://localhost/bitcoinbrawlers/brawlers/process/ajax.php?function=getbitcoinwallet",
+		}).done(function(response) {
+			
+			if (response['status'] == 'OK') {
+				
+				$('.wallet-value').html(response['results']['bitcoin_wallet']);
+				
+				$(".slider").attr({
+				   "max" : response['results']['bitcoin_wallet'],        
+				});
+				
+				if ($('.bet-status').html == 'Bets are OPEN!') {
+					var defaultbet = parseFloat(response['results']['bitcoin_wallet']);
+					defaultbet = defaultbet * 0.20;
+					defaultbet = defaultbet.toFixed(8);
+					$('.bet-amount').val(defaultbet);
+				}
+			
+			}
+			
+		});
+	}
+}
+
+function getplayerlists() {
+	
+	if ($('.player-lists-content').length) {
+
+		$.ajax({
+			type: "GET",
+			crossDomain: false,
+			url: "http://localhost/bitcoinbrawlers/brawlers/process/ajax.php?function=getplayerlists",
+		}).done(function(response) {
+			
+			if (response['status'] == 'OK') {
+				
+				$('.player-lists-content').html(response['results']['html']);
+			
+			}
+			
+		});
+	}
+}
+
+function validateEmail(email) {
+	var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+	return regex.test(email);
+}
+</script>
+
+<div class="modal fade popupwindow" id="popup-message" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            &nbsp;
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <center><img src="assets/images/logo.png" /></center>
+            </div>
+            <div class="modal-body">&nbsp;</div>
+            <div class="modal-footer"></div>
+            <input type="text" value="" id="clipboard-btc" style="position:fixed; left:-9999999px" />
+        </div>
+    </div>
+</div>
+
+<div class="modal fade popupwindow popup-confirm-placebet" id="popup-confirm-placebet" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            &nbsp;
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <center><img src="assets/images/logo.png" /></center>
+            </div>
+            <div class="modal-body">
+            	
+				<center>
+                    <h4>YOUR BET <span class="bet-amount-placed"></span> BTC ON <span class="bet-team-placed"></span></h4>
+                </center>
+                
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-primary submit-placebet">CONFIRM</button>
+                </div>    
+
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade popupwindow" id="popup-choose-username" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            &nbsp;
+            <center><img src="assets/images/logo.png" /></center>
+            </div>
+            <div class="modal-body">
+                <center>
+                    <h4><div>BET BITCOIN ON YOUR BRAWLER!</div> CREATE USERNAME TO START!</h4>
+                    <div><input type="text" class="choose-username" placeholder="USERNAME" /></div>
+                    <div><input type="password" class="choose-password" placeholder="PASSWORD" /></div>
+                    <span class="error-msg"></span>
+                    <div class="g-recaptcha" id="g-recaptcha1"></div>
+                </center>
+                
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-primary submit-new-user">CREATE ACCOUNT</button>
+                    <button type="button" class="btn btn-danger user-signin" data-dismiss="modal" aria-label="Close">SIGN-IN</button>
+                </div>      
+
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade popupwindow" id="popup-signin" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            &nbsp;
+            <center><img src="assets/images/logo.png" /></center>
+            </div>
+            <div class="modal-body">
+                <center>
+                    <h4>LOGIN</h4>
+                    <div><input type="text" class="login-username" placeholder="USERNAME" /></div>
+                    <div><input type="password" class="login-password" placeholder="PASSWORD" /></div>
+                    <span class="error-msg"></span>
+                    <div class="g-recaptcha" id="g-recaptcha2"></div>
+                </center>
+                
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-primary user-signin-submit">LOGIN</button>
+                    <button type="button" class="btn btn-danger user-create-account">CREATE ACCOUNT</button>
+                </div>      
+
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade popupwindow" id="send-crypto" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            &nbsp;
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <center><img src="assets/images/logo.png" /></center>
+            </div>
+            <div class="modal-body">
+                <center>
+                    <h4>WITHDRAW BITCOIN</h4>
+                    <div><input type="text" class="btc-address" placeholder="Address" /></div>
+                    <div><input type="text" class="btc-amount" placeholder="Amount" /></div>
+                    <span class="error-msg"></span>
+                    <div class="g-recaptcha" id="g-recaptcha3"></div>
+                </center>
+                
+                                
+                <div class="have-account"><span style="color:#08c;">Minimum withdrawal is</span> <strong style="color:#cf453f;">1.00000000</strong></div>
+                
+                <div class="modal-buttons">
+                	<button type="button" class="btn btn-primary submit-send-btc">SEND</button>
+                </div>
+            
+            </div>
+            <div class="modal-footer">
+            	
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade popupwindow" id="usr-referral" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            &nbsp;
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <center><img src="assets/images/logo.png" /></center>
+            </div>
+            <div class="modal-body">
+                <center>
+                    <h4>REFERRAL CODE</h4>
+                    <div>Share this code to your friends and earn a share of their winnnings!</div>
+                    <div><u>http://localhost/bitcoinbrawlers/brawlers/referrals.php?code=b4d9061695328d38bc6941cf06b4c5r4</u></div>
+                </center>
+                
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-primary" style="background:#fc6324; border:#fc6324; width:200px; margin:0 auto; padding:10px 20px;" onclick="copytoclipboard('http://localhost/bitcoinbrawlers/brawlers/referrals.php?code=b4d9061695328d38bc6941cf06b4c5r4', 'clipboard-referral')">Copy Code to Clipboard</button>
+                    <input type="text" value="" id="clipboard-referral" style="position:fixed; left:-9999999px" />
+                </div>      
+
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade popupwindow popup-usr-commissions" id="popup-usr-commissions" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            &nbsp;
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <center><img src="assets/images/logo.png" /></center>
+            </div>
+            	
+            <div class="user-bitcoin-commission">
+                <div class="bitcoin-icon-commission"></div>
+                <a class="wallet-commission"><span class="wallet-value-comission">0.00292000</span></a>
+            </div>
+            <div class="clear"></div>
+                
+            <div class="modal-body">
+            	
+				<div class="html-content" style="overflow:auto; height:400px;"></div>
+                
+                <div class="modal-buttons">
+                	<button type="button" class="btn btn-primary view-send-btc-comission">WITHDRAW COMISSION</button>
+                </div>  
+
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade popupwindow" id="send-crypto-commission" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            &nbsp;
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <center><img src="assets/images/logo.png" /></center>
+            </div>
+            <div class="modal-body">
+                <center>
+                    <h4>WITHDRAW COMMISSION</h4>
+                    <div><input type="text" class="btc-address-commission" placeholder="Address" /></div>
+                    <div><input type="text" class="btc-amount-commission" placeholder="Amount" /></div>
+                    <span class="error-msg"></span>
+                    <div class="g-recaptcha" id="g-recaptcha4"></div>
+                </center>
+                
+                                
+                <div class="have-account"><span style="color:#08c;">Minimum withdrawal is</span> <strong style="color:#cf453f;">1.00000000</strong></div>
+                
+                <div class="modal-buttons">
+                	<button type="button" class="btn btn-primary submit-send-btc-commission">SEND</button>
+                </div>
+            
+            </div>
+            <div class="modal-footer">
+            	
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade popupwindow" id="popup-usr-settings" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            &nbsp;
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <center><img src="assets/images/logo.png" /></center>
+            </div>
+            <div class="modal-body">
+                <center>
+                    <h4>SETTINGS</h4>
+                    <div><input type="text" class="usr-setting-name" placeholder="NAME" value="Raven" /></div>
+                    <div><input type="text" class="usr-setting-email" placeholder="EMAIL" value="t" /></div>
+                    <div><input type="password" class="usr-setting-password" placeholder="NEW PASSWORD" /></div>
+                    <div><input type="password" class="usr-setting-rpassword" placeholder="RE-TYPE PASSWORD" /></div>
+                    <span class="error-msg"></span>
+                    <div class="g-recaptcha" id="g-recaptcha1"></div>
+                </center>
+                
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-primary submit-usr-settings">UPDATE</button>
+                </div>      
+
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade popupwindow popup-usr-statistics" id="popup-usr-statistics" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            &nbsp;
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <center><img src="assets/images/logo.png" /></center>
+            </div>
+            <div class="modal-body">
+            	
+				<div class="html-content" style="overflow:auto; height:400px;"></div>
+                
+                <div class="modal-buttons">
+                    &nbsp;
+                </div>      
+
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+var widgetCpt_newusr;
+var widgetCpt_login;
+var widgetCpt_withdrawbtc;
+var CaptchaCallback = function() {
+	widgetCpt_newusr = grecaptcha.render('g-recaptcha1', {'sitekey' : '6Lf0HmUUAAAAAPVd5AEJy6fbvDMWTghxkMt4hods'});
+	widgetCpt_login = grecaptcha.render('g-recaptcha2', {'sitekey' : '6Lf0HmUUAAAAAPVd5AEJy6fbvDMWTghxkMt4hods'});
+	widgetCpt_withdrawbtc = grecaptcha.render('g-recaptcha3', {'sitekey' : '6Lf0HmUUAAAAAPVd5AEJy6fbvDMWTghxkMt4hods'});
+	widgetCpt_withdrawcommission = grecaptcha.render('g-recaptcha4', {'sitekey' : '6Lf0HmUUAAAAAPVd5AEJy6fbvDMWTghxkMt4hods'});
+};
+
+function copytoclipboard(el, target) {
+	$("#"+target).val(el);
+	var copyText = document.getElementById(''+target+'');
+	copyText.select();
+	document.execCommand("copy");
+	alert("Copied to clipboard!");
+}
+</script>
+<script src="https://www.google.com/recaptcha/api.js?onload=CaptchaCallback&render=explicit" async defer></script>
+
+
+<style>
+ul li {list-style:none;}
+</style>
+</head>
+
+<body>
+
+<div class="ajax-loader"></div>
+<div class="ajax-bg"></div>
+
+<div class="clear"></div>
+<section class="topheader">
+	<div class="container">
+    	<a href="index.php" class="logo"></a>
+        <div class="user-navigation">
+    <a href="#" class="deposit-crypto">DEPOSIT</a>
+    <a href="#" class="withdraw-crypto">WITHDRAW</a>
+    <a href="#" class="get-faucet">FAUCET</a>
+    <a href="what-is-bitcoin.php">HOW TO BUY BITCOIN</a>
+    <a href="http://localhost/bitcoinbrawlers//esports">ESPORTS</a>
+</div>
+
+<div class="user-bitcoin">
+	<div class="bitcoin-icon"></div>
+    <a class="wallet"><span class="wallet-value">3.91354344</span></a>
+</div>
+
+<div class="user-account">
+	<div class="user-icon"></div>
+    
+    <div class="dropdown account-dropdown">
+        <a class="user-account dropdown-toggle" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">ACCOUNT <span class="downarrow-icon"></span></a>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenu">
+            <a href="#" class="dropdown-item usr-settings">Settings</a>
+            <a href="#" class="dropdown-item usr-statistics">Statistics</a>
+            <a href="#" class="dropdown-item usr-referral">Referral Program</a>
+            <a href="#" class="dropdown-item view-usr-commissions">My Commissions</a>
+            <a href="logout.php" class="dropdown-item usr-logout">Logout</a>
+        </div>
+    </div>
+    
+    <div class="dropdown mobile-dropdown">
+    <a class="mobile-dropdown-menu dropdown-toggle" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">MENU <span class="mobile-icon"></span></a>
+    <div class="dropdown-menu" aria-labelledby="dropdownMenu">
+        <a href="#" class="deposit-crypto">DEPOSIT</a>
+        <a href="#" class="withdraw-crypto">WITHDRAW</a>
+        <a href="#" class="get-faucet">FAUCET</a>
+        <a href="what-is-bitcoin.php">HOW TO BUY BITCOIN</a>
+        <a href="http://localhost/bitcoinbrawlers//esports">ESPORTS</a>
+    </div>
+    
+    
+</div>
+
+<div class="clear"></div>    </div>
+    <div class="clear"></div>
+    <div class="incoming-balance"></div>    <div class="clear"></div>
+</section>
+
+<section class="content">
+	
+    <div class="container what-is-bitcoin" style="color:#FFF;">
+        <div class="row">
+            <div class="cols cols-page col-12">
+                
+                <h2>What is bitcoin?</h2>
+                
+                Bitcoin is a digital currency that allows you to send payments over the Internet. Why is bitcoin better for betting? <br />
+                
+                It's a decentralized currency. The bitcoin network isn't controlled, or responsible to any government or bank. <br />
+                
+                
+                Bitcoin addresses can be setup in seconds and one has already been created for you when you joined Bitbrawlers! <br />
+                It's faster and easier to transfer funds with bitcoin and the fees are lower than traditional bank transfers. Likewise, it's much easier to gamble with bitcoin in countries that restrict gambling deposits. <br />
+                
+                
+                Bitcoin addresses are anonymous. No personal information is attached to your bitcoin address, and your Bitbrawlers account is completely anonymous. 
+                Certain bitcoin currency exchanges may ask for personal information, but it is still possible to exchange money anonymously and will be discussed later in this guide.
+                
+                <h2>How do I buy bitcoin?</h2>
+                
+                Since bitcoin is  decentralized, there are several currency exchanges where you can buy bitcoin.  
+                They work exactly like traditional foreign currency exchanges; you exchange  your traditional currency into bitcoin. <br />
+                <u>Alternatively you  can also mine bitcoin using easy to use software</u> that uses your computer's  CPU and GPU processing power to mint new bitcoins which can used on  Bitbrawlers, 
+                <u>but keep in mind that you need a powerful PC to consider this  option</u> if you want to make more than a few pennies per day. <br />
+                In this guide we'll review the best options  available to you, as well as the pros and cons of each option.
+                
+                <!-- -->
+                <h3><a href="https://www.coinbase.com/" target="_blank">Coinbase.com</a></a></h3>
+                <strong>Pros:</strong><br>
+                <ul>
+                    <li>Coinbase is the Paypal of bitcoin exchanges. It's the easiest, quickest, and most user-friendly way to buy bitcoin online. It's especially ideal for Americans, but it is available in a total of 35 countries.</li>
+                    <li>Licensed in the United States as a Money Service Business this is the easiest way for Americans to buy bitcoin online. All deposits in Coinbase are insured so you don't have to worry about your bitcoin being stolen while they are being stored on Coinbase.</li>
+                    <li>Coinbase is available in 35 countries: United States, Canada, Singapore, Australia, Austria, Belgium, Bulgaria, Croatia, Cyprus, Czech Republic, Denmark, Finland, Greece, Hungary, Ireland, Italy, Jersey, Latvia, Liechtenstein, Luxemburg, Malta, Monaco, Netherlands, Norway, Poland, Portugal, San Marino, Slovakia, Spain, Sweden, Switzerland, and United Kingdom</li>
+                    <li>You can buy bitcoin using your credit and debit cards (Visa and Mastercard only) or via bank transfer. Bank transfer options work like Paypal so if you can work your Paypal account you will have no problems. Americans can use ACH for bank transfers while Europeans can use SEPA for bank transfers.</li>
+                    <li>In addition to buying bitcoin, you can sell your bitcoin for traditional fiat currency here and have it deposited into your bank account.</li>
+                </ul>
+            	<strong>Cons:</strong><br>
+                <ul>
+                    <li>If you are a US citizen with a credit card from Wells Fargo, JP Morgan, Bank of America, Citibank, or Capital One your bitcoin purchase payment might get declined. Be prepared to have a backup credit card ready. Debit cards and bank transfers are NOT affected by this.</li>
+                    <li>If you are a UK citizen with a credit card from Lloyds, Halifax, MBNA, Bank of Scotland, or Virgin Money your bitcoin purchase payment might get declined. Be prepared to have a backup credit card ready. Bank transfers are NOT affected by this.</li>
+                    <li>You need to provide your ID card or passport however the process is very smooth and easy, and your ID is not shared with Bitbrawlers or any third parties. If anonymity is a major concern for you, please read further for anonymous deposit options.</li>
+                </ul>
+                
+                <!-- -->
+                <h3><a href="https://www.coinmama.com/" target="_blank">Coinmama.com</a></a></h3>
+                <strong>Pros:</strong><br>
+                <ul>
+                    <li>Based in Israel and licensed in the United States as a Money Service Business.</li>
+                    <li>Fantastic for Americans and works in 188 countries including United States, United Kingdom, Germany, Poland, Philippines, Taiwan, Hong Kong, Macau, and many more.</li>
+                    <li>Easy to use. Once verified you can buy bitcoins with a credit or debit card (Visa and Mastercard only) instantly</li>
+                    <li>Excellent and friendly customer service</li>
+                </ul>
+                <strong>Cons:</strong><br>
+                <ul>
+                    <li>If you are a US citizen with a credit card from Wells Fargo, JP Morgan, Bank of America, Citibank, or Capital One your bitcoin purchase payment might get declined. Be prepared to have a backup credit card ready. Debit cards are NOT affected by this.</li>
+                    <li>If you are a UK citizen with a credit card from Lloyds, Halifax, MBNA, Bank of Scotland, or Virgin Money your bitcoin purchase payment might get declined. Be prepared to have a backup credit card ready.</li>
+                    <li>In the United States, Coinmama is only available in the following states: Arizona, California, Colorado, Florida, Illinois, Indiana, Kansas, Kentucky, Louisiana, Massachusetts, Maryland, Michigan, Missouri, Montana, Nevada, New Jersey, North Carolina, Pennsylvania, South Carolina, Tennessee, Texas, Virginia, Wisconsin</li>
+                    <li>You need to provide your ID card or passport however the process is very smooth and easy, and your ID is not shared with Bitbrawlers or any third parties. If anonymity is a major concern for you, please read further for anonymous deposit options.</li>
+                </ul>
+				
+                <!-- -->
+                <h3><a href="https://cubits.com/" target="_blank">Cubits.com</a></h3>
+                <strong>Pros:</strong><br>
+                <ul>
+                	<li>Based in Germany, this is a fantastic option for Europeans and works in most other countries too.</li>
+                	<li>Plenty of bitcoin buying options: Visa, Mastercard, SEPA bank transfer, and even SWIFT bank transfer</li>
+                	<li>You can sell your bitcoin instantly for euros.</li>
+                	<li>Excellent and highly knowledgeable customer service that speak English, German, and Polish </li>
+                </ul>
+                <strong>Cons:</strong><br>
+                <ul>
+                    <li>This exchange is not available to Americans.</li>
+                    <li>If you are a UK citizen with a credit card from Lloyds, Halifax, MBNA, Bank of Scotland, or Virgin Money your bitcoin purchase payment might get declined. Be prepared to have a backup credit card ready. This does not affect bank transfers.</li>
+                    <li>You need to provide your ID card or passport however the process is very smooth and easy, and your ID is not shared with Bitbrawlers or any third parties. If anonymity is a major concern for you, please read further for anonymous deposit options.</li>
+                </ul>
+                
+                <!-- -->
+                <h3><a href="https://www.bitpanda.com/en" target="_blank">Bitpanda.com</a></h3>
+                <strong>Pros:</strong><br>
+                <ul>
+                    <li>Based in Austria, this is another fantastic exchange for Europeans.</li>
+                    <li>This exchange features more buying options than any other exchange: Visa, Mastercard, SEPA bank transfer, EPS, Giropay, Skrill, Sofort, Neteller. Many gambling veterans are probably already very familiar with these buying options.</li>
+                    <li>You can transfer payments to other Bitpanda.com members without any fees.</li>
+                    <li>You can sell your bitcoin instantly and be paid in USD, EUR, or CHF</li>
+                    <li>Highly competent customer service staff</li>
+                </ul>
+                <strong>Cons:</strong><br>
+                <ul>
+                    <li>Most payment options work for European citizens only. Non Europeans can only transfer funds into Bitpanda using Neteller, though this is still a very good option and popular with gamblers.</li>
+                    <li>You need to provide your ID card or passport however the process is very smooth and easy, and your ID is not shared with Bitbrawlers or any third parties. If anonymity is a major concern for you, please read further for anonymous deposit options.</li>
+               	</ul>
+                
+                <!-- -->
+                <h3><a href="https://wallofcoins.com/en/" target="_blank">Wallofcoins.com</a></h3>
+                <strong>Pros:</strong><br>
+                <ul>
+                    <li>Extremely easy escrow buying service that lets you buy bitcoins with cash</li>
+                    <li>No ID required; you only need to provide a phone a number.</li>
+                </ul>
+                <strong>Cons:</strong><br>
+                <ul>
+                	<li>Service only available in: United States, United Kingdom, Canada, Argentina, Australia, Brazil, Canada, Germany, Latvia, Mexico, Poland, Philippines, and Romania</li>
+				</ul>
+                
+                <!-- -->
+                <h3><a href="https://localbitcoins.com/" target="_blank">Localbitcoins.com</a></h3>
+                <strong>Pros:</strong><br>
+                <ul>
+                    <li>Anonymous peer to peer buying of bitcoins. Instead of buying your bitcoin directly from localbitcoins.com, you instead buy bitcoins from individuals listed on localbitcoins.com</li>
+                    <li>Works in any country, even very difficult jurisdictions like Venezuela, Zimbabwe, and China.</li>
+                    <li>There are many ways to buy bitcoin: You can meet with your seller in person and pay cash or you can stay online and pay via bank transfer, Paypal, Cash via Post, Western Union, Moneygram, Moneybookers, Neteller, Steam Gift Card Codes, Gift Cards, etc.</li>
+                    <li>You can also sell your bitcoin anonymously here as well.</li>
+                </ul>
+				<strong>Cons:</strong><br>
+				<ul>
+					<li>This is the ebay or craigslist of bitcoins. This means you must watch out for scammers. Only buy bitcoin from sellers with a long trading history and good reviews. If you aren't sure if someone is trustworthy, feel free to email us at blockchainbusiness@safe-mail.net and we will assist you.</li>
+ 				</ul>
+                
+				<!-- -->
+                <h3><a href="https://www.buybitcoin.ph/" target="_blank">BuyBitcoin.ph</a></h3>
+                <strong>Pros:</strong><br>
+                <ul>
+                    <li>This is a fantastic way for Philippine citizens to buy bitcoins online.</li>
+                    <li>The easiest way to buy Bitcoins in the Philippines.</li>
+                    <li>The service offers good privacy</li>
+                </ul>
+                <strong>Cons:</strong><br>
+                <ul>
+                	<li>Only works in the Philippines</li>
+				</ul>
+                
+				<!-- -->
+                <h3><a href="https://www.korbit.co.kr/" target="_blank">Korbit.co.kr</a></h3>
+                <strong>Pros:</strong><br>
+                <ul>
+                    <li>The first and largest Bitcoin exchange in South Korea.</li>
+                    <li>Unlike many South Korean exchanges, Korbit is secure and stores Bitcoin in cold wallets.</li>
+                    <li>Easy to buy and sell bitcoin.</li>
+                    <li>Excellent customer service for South Koreans.</li>
+                    <li>South Korea has good regulations for Bitcoin</li>
+                </ul>
+                <strong>Cons:</strong><br>
+                <ul>
+                	<li>FAQ only in Korean, but this exchange will open accounts for non Koreans as well. Most other pages are in English</li>
+                </ul>
+                
+                <!-- -->
+                <h3><a href="https://bitflyer.com/ja-jp/" target="_blank">BitFlyer.jp</a></h3>
+                <strong>Pros:</strong><br>
+                <ul>
+                    <li>The largest Bitcoin exchange in Japan and is perfect for Japanese citizens.</li>
+                    <li>Fairly private; only a phone number and Facebook account needed for purchases up to 250,000 JPY</li>
+                    <li>Great for both buying and selling bitcoin</li>
+                </ul>
+                <strong>Cons:</strong><br>
+                <ul>
+                    <li>Available in Japan and in Japanese only</li>
+                    <li>Customer service only open from 9 AM to 7 PM</li>
+                    <li>Bitcoin purchases that are over 250,000 JPY require identity verification</li>
+                </ul>
+                
+                <!-- -->
+                <h3><a href="https://www.bitoex.com/" target="_blank">Bitoex.com</a></h3>
+                <strong>Pros:</strong><br>
+                <ul>
+                    <li>Easiest way to buy bitcoin in Taiwan.</li>
+                    <li>You can buy bitcoin at any Familymart in Taiwan</li>
+                </ul>
+                <strong>Cons:</strong><br>
+                <ul>
+                	<li>Only available in Taiwan</li>
+                </ul>
+                
+                <!-- -->
+                <h3><a href="https://www.nicehash.com/" target="_blank">Nicehash.com</a></h3>
+                <strong>Pros:</strong><br>
+                <ul>
+                	<li>Nicehash offers free software that lets you mine Bitcoin or other cryptocurrency using the processing power of your high-end PC or ASIC. Payments are always made to you in bitcoin regardless of the cryptocurrency you are mining.</li>
+                    <li>Highly anonymous since you are minting Bitcoin or other cryptocurrency directly using the processing power of your PC and do not need to provide any personal information.</li>
+                    <li>Works great even in highly restrictive jurisdictions such as China if you have a powerful gaming PC or graphics workstation.</li>
+                    <li>Supports ASICs for advanced users.</li>
+                </ul>
+                <strong>Cons:</strong><br>
+                <ul>
+                    <li>Don't bother if you don't have a high-end PC with a powerful GPU or an ASIC. Your laptop probably doesn't qualify unless it is capable of playing graphically intensive computer games.</li>
+                    <li>A high-end PC can only make about $70 USD per month worth of bitcoin. That's still more than enough for some good gambling at Bitbrawlers though. You need to buy more GPUs if you want to earn more bitcoin or buy an ASIC.</li>
+				</ul>
+  
+            </div>
+        </div>
+	</div>
+    
+    <div class="clear"></div>
+
+</section>
+
+<section class="footer">
+    <div class="container">
+        <div class="footer-links">
+            <a href="index.php">Home</a>
+            <a href="how-to-buy-bitcoin.php">How to buy Bitcoin</a>
+            <a href="what-is-bitcoin.php">What is Bitcoin</a>
+            <a href="terms-of-service.php">Terms of service</a>
+        </div>
+    </div>
+</section>
+<div class="clear"></div>
+</body>
+</html>
